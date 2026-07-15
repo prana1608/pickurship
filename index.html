@@ -18,13 +18,7 @@ tailwind.config={theme:{extend:{
 }}}}
 </script>
 <style>
-/* ============================================================
-   TOKEN SYSTEM — pickurship enterprise theme
-   Two named themes (dark / light) share one contract of variables.
-   Everything downstream (Tailwind colors + custom classes) reads
-   only from these tokens, so switching data-theme repaints the
-   entire product with no per-component overrides.
-   ============================================================ */
+
 :root{
   /* ink = neutral scale, accent = primary action/wayfinding (deep harbor teal), gold = premium/secondary marker (brass) */
   --ink-950:#0A0D12; --ink-900:#0F131A; --ink-800:#161B24; --ink-700:#1D232F; --ink-600:#2A3140;
@@ -205,11 +199,8 @@ body{background:var(--bg);color:var(--text-1);overflow-x:hidden;transition:backg
 <nav id="navbar" class="fixed top-0 left-0 right-0 z-[100] transition-all duration-500">
   <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <div class="flex items-center justify-between h-16 md:h-[72px]">
-      <a href="#/" class="flex items-center gap-2.5 group" onclick="navigate('home')">
-        <div class="w-9 h-9 rounded-lg bg-cyan-500 flex items-center justify-center">
-          <i data-lucide="ship" class="w-4.5 h-4.5 icon-solid"></i>
-        </div>
-        <span class="text-lg font-display font-medium tracking-tight">pickur<span class="text-cyan-400">ship</span></span>
+      <a href="#/" onclick="navigate('home')">
+        <img src="./dnata logo.png"alt="Agency Logo" class="h-12 w-auto">
       </a>
       <div class="hidden md:flex items-center gap-1">
         <a href="#/" class="nav-link px-3.5 py-2 text-[13px] text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all" data-page="home">Home</a>
