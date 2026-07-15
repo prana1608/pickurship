@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pickurship — Craft Your Perfect Trip</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,450;9..144,560;9..144,650&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+tailwind.config={theme:{extend:{
+  fontFamily:{inter:['Inter','sans-serif'],display:['Fraunces','ui-serif','Georgia','serif'],mono:['JetBrains Mono','ui-monospace','monospace']},
+  colors:{
+  /* mapped onto CSS custom properties -> every text-cyan-*, bg-navy-*, border-violet-* class repaints automatically when the theme token changes */
+  navy:{950:'var(--ink-950)',900:'var(--ink-900)',800:'var(--ink-800)',700:'var(--ink-700)',600:'var(--ink-600)'},
+  cyan:{50:'var(--accent-50)',100:'var(--accent-100)',200:'var(--accent-200)',300:'var(--accent-300)',400:'var(--accent-400)',500:'var(--accent-500)',600:'var(--accent-600)'},
+  violet:{50:'var(--gold-50)',100:'var(--gold-100)',200:'var(--gold-200)',300:'var(--gold-300)',400:'var(--gold-400)',500:'var(--gold-500)',600:'var(--gold-600)'}
+}}}}
+</script>
+<style>
+/* ============================================================
+   TOKEN SYSTEM — pickurship enterprise theme
+   Two named themes (dark / light) share one contract of variables.
+   Everything downstream (Tailwind colors + custom classes) reads
+   only from these tokens, so switching data-theme repaints the
+   entire product with no per-component overrides.
+   ============================================================ */
+:root{
+  /* ink = neutral scale, accent = primary action/wayfinding (deep harbor teal), gold = premium/secondary marker (brass) */
+  --ink-950:#0A0D12; --ink-900:#0F131A; --ink-800:#161B24; --ink-700:#1D232F; --ink-600:#2A3140;
+  --accent-50:#EAF6F3; --accent-100:#CDEAE3; --accent-200:#9BD5C7; --accent-300:#63BBA8; --accent-400:#2E9C87; --accent-500:#1F8069; --accent-600:#186B58;
+  --gold-50:#FBF6EC; --gold-100:#F0E1BE; --gold-200:#E3C787; --gold-300:#D2AB5C; --gold-400:#BE9142; --gold-500:#A67B36; --gold-600:#8A652C;
+  --danger:#C5604A; --danger-tint:rgba(197,96,74,.14);
+  --success:#2E9C6E; --success-tint:rgba(46,156,110,.14);
+
+  --bg:var(--ink-950); --bg-rgb:10,13,18;
+  --surface:var(--ink-900);
+  --tint-rgb:255,255,255;           /* overlay tint used by glass/hairline surfaces */
+  --text-1:#EEF1F4; --text-2:#9AA5B4; --text-3:#5F6B7C;
+  --border:rgba(255,255,255,.08);
+  --shadow-1:0 1px 2px rgba(0,0,0,.4),0 8px 24px -8px rgba(0,0,0,.5);
+  --radius:10px; --radius-lg:14px; --radius-sm:7px;
+}
+[data-theme="light"]{
+  --bg:#F5F6F5; --bg-rgb:245,246,245;
+  --surface:#FFFFFF;
+  --tint-rgb:10,14,18;
+  --text-1:#141A20; --text-2:#5B6672; --text-3:#8A93A0;
+  --border:rgba(10,14,18,.09);
+  --shadow-1:0 1px 2px rgba(20,26,32,.06),0 8px 24px -12px rgba(20,26,32,.14);
+  --accent-50:#EAF6F3; --accent-100:#CDEAE3;
+}
+
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+body{background:var(--bg);color:var(--text-1);overflow-x:hidden;transition:background .25s ease,color .25s ease}
+.font-display{font-family:'Fraunces','Georgia',serif;font-feature-settings:'ss02' 1}
+.font-mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--ink-600);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
+:focus-visible{outline:2px solid var(--accent-400);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* SURFACES — hairline-bordered flat panels, restrained blur only where it earns its keep (nav, modal, dropdown) */
+.glass{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.glass-md{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.glass-sm{background:rgba(var(--tint-rgb),.035);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.glass-heavy{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-1)}
+.glass-input{background:rgba(var(--tint-rgb),.03);border:1px solid var(--border);border-radius:var(--radius-sm);transition:border-color .2s,box-shadow .2s;color:var(--text-1)}
+.glass-input:focus{outline:none;border-color:var(--accent-400);box-shadow:0 0 0 3px var(--accent-100)}
+[data-theme="dark"] .glass-input:focus,:root:not([data-theme="light"]) .glass-input:focus{box-shadow:0 0 0 3px rgba(46,156,135,.16)}
+.glass-nav{background:rgba(var(--bg-rgb),.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+
+/* SECTION FIELDS — quiet single-tone washes, no neon mesh */
+.mesh-hero,.mesh-dest,.mesh-package,.mesh-trips,.mesh-checkout,.mesh-profile{background:var(--bg)}
+.mesh-hero{background-image:radial-gradient(ellipse 70% 55% at 18% 18%,rgba(31,128,105,.10) 0%,transparent 60%)}
+
+/* ANIMATIONS — one orchestrated entrance, nothing ambient/looping */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes dash{to{stroke-dashoffset:0}}
+.animate-fade-up{animation:fadeUp .5s cubic-bezier(.2,.7,.3,1) both}
+.animate-fade-in{animation:fadeIn .4s ease-out both}
+.animate-slide-down{animation:slideDown .25s ease-out both}
+.animate-float,.animate-pulse-glow{animation:none}
+.delay-100{animation-delay:.06s}.delay-200{animation-delay:.12s}.delay-300{animation-delay:.18s}.delay-400{animation-delay:.24s}.delay-500{animation-delay:.3s}
+
+.skeleton{background:linear-gradient(90deg,rgba(var(--tint-rgb),.04) 25%,rgba(var(--tint-rgb),.08) 50%,rgba(var(--tint-rgb),.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
+
+.page{display:none;opacity:0;min-height:100vh}
+.page.active{display:block;animation:fadeIn .3s ease-out forwards}
+
+.card-lift{transition:transform .25s cubic-bezier(.2,.7,.3,1),box-shadow .25s ease,border-color .25s ease}
+.card-lift:hover{transform:translateY(-2px);box-shadow:var(--shadow-1);border-color:rgba(var(--tint-rgb),.16)}
+.img-zoom img{transition:transform .5s ease}
+.img-zoom:hover img{transform:scale(1.04)}
+
+/* BUTTONS — solid, confident, no glow */
+.btn-primary{background:var(--accent-500);color:#fff;font-weight:500;border-radius:var(--radius-sm);transition:background .2s,transform .15s}
+.btn-primary:hover{background:var(--accent-600)}
+.btn-primary:active{transform:translateY(1px)}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text-1);font-weight:500;border-radius:var(--radius-sm);transition:all .2s}
+.btn-secondary:hover{background:rgba(var(--tint-rgb),.05);border-color:rgba(var(--tint-rgb),.2)}
+.btn-ghost{color:var(--text-2);font-weight:500;border-radius:var(--radius-sm);transition:all .15s}
+.btn-ghost:hover{color:var(--text-1);background:rgba(var(--tint-rgb),.05)}
+
+/* TAGS — two functional families: accent (informational) and gold (premium), plus status hues reused for danger/success */
+.tag{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:5px;border:1px solid}
+.tag-cyan{background:var(--accent-50);color:var(--accent-600);border-color:var(--accent-200)}
+[data-theme="light"] .tag-cyan{background:var(--accent-50);color:var(--accent-600)}
+:root:not([data-theme="light"]) .tag-cyan{background:rgba(46,156,135,.12);color:var(--accent-300);border-color:rgba(46,156,135,.28)}
+.tag-violet{background:var(--gold-50);color:var(--gold-600);border-color:var(--gold-200)}
+:root:not([data-theme="light"]) .tag-violet{background:rgba(190,145,66,.14);color:var(--gold-300);border-color:rgba(190,145,66,.3)}
+.tag-amber{background:var(--gold-50);color:var(--gold-600);border-color:var(--gold-200)}
+:root:not([data-theme="light"]) .tag-amber{background:rgba(190,145,66,.14);color:var(--gold-300);border-color:rgba(190,145,66,.3)}
+.tag-rose{background:var(--danger-tint);color:var(--danger);border-color:rgba(197,96,74,.3)}
+.tag-emerald{background:var(--success-tint);color:var(--success);border-color:rgba(46,156,110,.3)}
+
+/* STATUS BADGES */
+.status-upcoming{background:var(--accent-50);color:var(--accent-600)}
+:root:not([data-theme="light"]) .status-upcoming{background:rgba(46,156,135,.14);color:var(--accent-300)}
+.status-ongoing{background:var(--success-tint);color:var(--success)}
+.status-completed{background:rgba(var(--tint-rgb),.08);color:var(--text-2)}
+.status-cancelled{background:var(--danger-tint);color:var(--danger)}
+
+/* STEP INDICATOR */
+.step-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;transition:all .3s;font-family:'JetBrains Mono',monospace}
+.step-dot.active{background:var(--accent-500);color:#fff}
+.step-dot.done{background:var(--success-tint);color:var(--success);border:1px solid rgba(46,156,110,.3)}
+.step-dot.pending{background:rgba(var(--tint-rgb),.04);color:var(--text-3);border:1px solid var(--border)}
+.step-line{height:1px;flex:1;background:var(--border);position:relative;overflow:hidden}
+.step-line .fill{position:absolute;inset:0;background:var(--accent-500);transform:scaleX(0);transform-origin:left;transition:transform .4s ease}
+.step-line.filled .fill{transform:scaleX(1)}
+
+.dropdown{display:none;position:absolute;z-index:60}
+.dropdown.open{display:block;animation:slideDown .18s ease-out}
+
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{pointer-events:auto;padding:11px 18px;border-radius:var(--radius-sm);font-size:13px;display:flex;align-items:center;gap:10px;animation:slideDown .25s ease-out;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-1);color:var(--text-1)}
+.toast-success{border-left:2.5px solid var(--success)}
+.toast-error{border-left:2.5px solid var(--danger)}
+.toast-info{border-left:2.5px solid var(--accent-500)}
+
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex;animation:fadeIn .18s ease-out}
+.modal-content{animation:fadeUp .25s cubic-bezier(.2,.7,.3,1);max-height:90vh;overflow-y:auto}
+
+/* ITINERARY LINE — the signature route motif, dashed like a plotted course */
+.itin-item{position:relative;padding-left:36px}
+.itin-item::before{content:'';position:absolute;left:14px;top:32px;bottom:-8px;width:1px;background-image:linear-gradient(var(--accent-400) 60%,transparent 0);background-size:1px 6px;background-repeat:repeat-y;opacity:.5}
+.itin-item:last-child::before{display:none}
+.itin-dot{position:absolute;left:6px;top:6px;width:18px;height:18px;border-radius:50%;background:var(--accent-50);border:1.5px solid var(--accent-400);display:flex;align-items:center;justify-content:center}
+:root:not([data-theme="light"]) .itin-dot{background:rgba(46,156,135,.14)}
+.itin-dot-inner{width:5px;height:5px;border-radius:50%;background:var(--accent-400)}
+
+.tab-btn{padding:8px 18px;font-size:13px;font-weight:500;border-radius:var(--radius-sm);transition:all .2s;color:var(--text-3)}
+.tab-btn.active{background:var(--accent-50);color:var(--accent-600)}
+:root:not([data-theme="light"]) .tab-btn.active{background:rgba(46,156,135,.14);color:var(--accent-300)}
+.tab-btn:not(.active):hover{color:var(--text-1);background:rgba(var(--tint-rgb),.04)}
+
+/* THEME TOGGLE */
+.theme-toggle{width:38px;height:38px;border-radius:var(--radius-sm);border:1px solid var(--border);background:rgba(var(--tint-rgb),.03);display:flex;align-items:center;justify-content:center;color:var(--text-2);transition:all .2s;cursor:pointer}
+.theme-toggle:hover{color:var(--text-1);border-color:rgba(var(--tint-rgb),.2)}
+[data-theme="light"] .icon-moon,[data-theme="light"] .icon-sun{display:none}
+[data-theme="light"] .icon-sun{display:block}
+:root:not([data-theme="light"]) .icon-moon{display:block}
+:root:not([data-theme="light"]) .icon-sun{display:none}
+
+/* Legacy slate/white utilities scattered through markup — remapped onto tokens so the light theme stays legible without touching every template string */
+.text-slate-300{color:var(--text-1)!important}
+.text-slate-400,.text-slate-500{color:var(--text-2)!important}
+.text-slate-600{color:var(--text-3)!important}
+.text-white,.hover\:text-white:hover{color:var(--text-1)!important}
+.bg-white\/5{background-color:rgba(var(--tint-rgb),.05)!important}
+.bg-white\/10{background-color:rgba(var(--tint-rgb),.1)!important}
+.hover\:bg-white\/5:hover{background-color:rgba(var(--tint-rgb),.05)!important}
+.hover\:bg-white\/10:hover{background-color:rgba(var(--tint-rgb),.1)!important}
+.border-white\/\[0\.04\]{border-color:var(--border)!important}
+.border-white\/5{border-color:var(--border)!important}
+/* icons sitting on solid accent-colored chips (logo mark, WhatsApp) stay white in both themes */
+.icon-solid{color:#fff!important}
+
+.hero-title,.section-title{font-family:'Fraunces','Georgia',serif;font-weight:500}
+
+@media(max-width:768px){
+  .hero-title{font-size:2.1rem!important}
+  .section-title{font-size:1.5rem!important}
+}
+</style>
+</head>
+<body class="font-inter antialiased">
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div id="modal-body" class="modal-content glass-heavy p-6 w-full max-w-lg"></div>
+</div>
+
+<!-- NAVBAR -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-[100] transition-all duration-500">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="flex items-center justify-between h-16 md:h-[72px]">
+      <a href="#/" class="flex items-center gap-2.5 group" onclick="navigate('home')">
+        <div class="w-9 h-9 rounded-lg bg-cyan-500 flex items-center justify-center">
+          <i data-lucide="ship" class="w-4.5 h-4.5 icon-solid"></i>
+        </div>
+        <span class="text-lg font-display font-medium tracking-tight">pickur<span class="text-cyan-400">ship</span></span>
+      </a>
+      <div class="hidden md:flex items-center gap-1">
+        <a href="#/" class="nav-link px-3.5 py-2 text-[13px] text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all" data-page="home">Home</a>
+        <a href="#/destinations" class="nav-link px-3.5 py-2 text-[13px] text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all" data-page="destinations">Destinations</a>
+        <a href="#/trips" class="nav-link px-3.5 py-2 text-[13px] text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all" data-page="trips">My Trips</a>
+        <a href="#/checkout" class="nav-link px-3.5 py-2 text-[13px] text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all relative" data-page="checkout">
+          Cart
+          <span id="cart-badge" class="hidden absolute -top-0.5 -right-0.5 w-5 h-5 bg-cyan-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+        </a>
+        <a href="#/profile" class="nav-link px-3.5 py-2 text-[13px] text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all" data-page="profile">Profile</a>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+          <i data-lucide="moon" class="icon-moon w-4 h-4"></i>
+          <i data-lucide="sun" class="icon-sun w-4 h-4"></i>
+        </button>
+        <button class="hidden md:flex btn-ghost px-3 py-2 text-sm" onclick="showToast('Login coming soon!','info')">Sign In</button>
+        <button class="hidden md:flex btn-primary px-5 py-2.5 text-sm" onclick="navigate('destinations')">Explore</button>
+        <button id="mobile-toggle" class="md:hidden p-2 text-slate-400 hover:text-white" onclick="toggleMobileMenu()">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div id="mobile-menu" class="md:hidden hidden glass-nav border-t border-white/5">
+    <div class="px-4 py-3 space-y-1">
+      <a href="#/" class="block px-4 py-3 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-lg" onclick="navigate('home');toggleMobileMenu()">Home</a>
+      <a href="#/destinations" class="block px-4 py-3 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-lg" onclick="navigate('destinations');toggleMobileMenu()">Destinations</a>
+      <a href="#/trips" class="block px-4 py-3 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-lg" onclick="navigate('trips');toggleMobileMenu()">My Trips</a>
+      <a href="#/checkout" class="block px-4 py-3 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-lg" onclick="navigate('checkout');toggleMobileMenu()">Cart</a>
+      <a href="#/profile" class="block px-4 py-3 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-lg" onclick="navigate('profile');toggleMobileMenu()">Profile</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== PAGE: HOME ==================== -->
+<div id="page-home" class="page active mesh-hero">
+  <!-- Hero -->
+  <section class="min-h-screen flex flex-col justify-center pt-20 pb-12 px-4 sm:px-6 relative overflow-hidden">
+    <!-- signature: a plotted course, the one deliberate flourish on the page -->
+    <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-[.35]" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <path d="M -50 620 C 220 520, 340 700, 560 560 S 900 320, 1250 380" fill="none" stroke="var(--accent-400)" stroke-width="1.25" stroke-dasharray="1 9" stroke-linecap="round"/>
+      <circle cx="560" cy="560" r="3" fill="var(--accent-400)"/>
+      <circle cx="-50" cy="620" r="3" fill="var(--accent-400)"/>
+      <circle cx="1250" cy="380" r="3" fill="var(--accent-400)"/>
+    </svg>
+
+    <div class="max-w-5xl mx-auto w-full text-center relative z-10">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-sm text-cyan-400 text-[11px] font-semibold tracking-widest uppercase mb-8 animate-fade-up font-mono">
+        <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+        Personalized Travel Planning
+      </div>
+      <h1 class="hero-title font-display text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] font-medium tracking-tight leading-[1.05] mb-6 animate-fade-up delay-100">
+        Your journey,<br>
+        <span class="italic text-cyan-400">your rules</span>
+      </h1>
+      <p class="text-base md:text-lg text-slate-400 max-w-xl mx-auto leading-relaxed mb-12 animate-fade-up delay-200">
+        Intelligent itineraries, handpicked stays, and seamless bookings — all tailored to your style.
+      </p>
+
+      <!-- Search Panel -->
+      <div class="glass-heavy p-2 md:p-3 max-w-3xl mx-auto animate-fade-up delay-300">
+        <div class="flex gap-1 mb-2.5 p-1 bg-white/[0.03] rounded-xl">
+          <button class="search-tab tab-btn active flex-1 flex items-center justify-center gap-1.5 text-xs" data-type="holidays"><i data-lucide="palmtree" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Holidays</span></button>
+          <button class="search-tab tab-btn flex-1 flex items-center justify-center gap-1.5 text-xs" data-type="honeymoon"><i data-lucide="heart" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Honeymoon</span></button>
+          <button class="search-tab tab-btn flex-1 flex items-center justify-center gap-1.5 text-xs" data-type="adventure"><i data-lucide="mountain" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Adventure</span></button>
+          <button class="search-tab tab-btn flex-1 flex items-center justify-center gap-1.5 text-xs" data-type="weekend"><i data-lucide="calendar" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Weekend</span></button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          <div class="relative" id="home-dest-wrap">
+            <div id="home-dest-trigger" class="flex items-center gap-3 px-4 py-3 glass-input cursor-pointer">
+              <i data-lucide="map-pin" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+              <div class="flex-1 min-w-0"><div class="text-[9px] text-slate-500 uppercase tracking-widest font-medium">Where to?</div><div id="home-dest-label" class="text-sm text-slate-300 truncate">Select destination</div></div>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+            </div>
+            <div id="home-dest-dd" class="dropdown top-full left-0 right-0 mt-2 glass-heavy p-2 max-h-64 overflow-y-auto">
+              <input type="text" id="home-dest-search" placeholder="Search..." class="w-full px-3 py-2 glass-input text-sm text-white placeholder:text-slate-500 mb-1">
+              <div id="home-dest-list" class="space-y-0.5"></div>
+            </div>
+          </div>
+          <div class="relative">
+            <div class="flex items-center gap-3 px-4 py-3 glass-input cursor-pointer" onclick="document.getElementById('home-date').showPicker?.()||document.getElementById('home-date').click()">
+              <i data-lucide="calendar-days" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+              <div class="flex-1 min-w-0"><div class="text-[9px] text-slate-500 uppercase tracking-widest font-medium">When?</div><div id="home-date-label" class="text-sm text-slate-300">Pick dates</div></div>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+            </div>
+            <input type="date" id="home-date" class="absolute inset-0 opacity-0 cursor-pointer" onchange="document.getElementById('home-date-label').textContent=this.value?new Date(this.value).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Pick dates'">
+          </div>
+          <div class="relative" id="home-trav-wrap">
+            <div id="home-trav-trigger" class="flex items-center gap-3 px-4 py-3 glass-input cursor-pointer">
+              <i data-lucide="users" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+              <div class="flex-1 min-w-0"><div class="text-[9px] text-slate-500 uppercase tracking-widest font-medium">Who?</div><div id="home-trav-label" class="text-sm text-slate-300">2 Adults</div></div>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+            </div>
+            <div id="home-trav-dd" class="dropdown top-full right-0 mt-2 glass-heavy p-4 w-60">
+              <div class="flex items-center justify-between mb-3"><div><div class="text-sm">Adults</div><div class="text-[10px] text-slate-500">Age 13+</div></div><div class="flex items-center gap-2"><button class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400" onclick="adjustTrav('home','adults',-1)"><i data-lucide="minus" class="w-3.5 h-3.5"></i></button><span id="home-adults" class="text-sm font-medium w-5 text-center">2</span><button class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400" onclick="adjustTrav('home','adults',1)"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button></div></div>
+              <div class="flex items-center justify-between"><div><div class="text-sm">Children</div><div class="text-[10px] text-slate-500">Age 2-12</div></div><div class="flex items-center gap-2"><button class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400" onclick="adjustTrav('home','children',-1)"><i data-lucide="minus" class="w-3.5 h-3.5"></i></button><span id="home-children" class="text-sm font-medium w-5 text-center">0</span><button class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400" onclick="adjustTrav('home','children',1)"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button></div></div>
+            </div>
+          </div>
+          <button class="btn-primary flex items-center justify-center gap-2 px-5 py-3 text-sm" onclick="handleHomeSearch()">
+            <i data-lucide="search" class="w-4 h-4"></i>Search
+          </button>
+        </div>
+      </div>
+
+      <!-- Trust -->
+      <div class="flex flex-wrap items-center justify-center gap-6 md:gap-10 mt-14 animate-fade-up delay-400">
+        <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg glass-sm flex items-center justify-center"><i data-lucide="shield-check" class="w-4 h-4 text-cyan-400"></i></div><div class="text-left"><div class="text-xs font-medium">Verified</div><div class="text-[10px] text-slate-500">100% safe bookings</div></div></div>
+        <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg glass-sm flex items-center justify-center"><i data-lucide="headphones" class="w-4 h-4 text-cyan-400"></i></div><div class="text-left"><div class="text-xs font-medium">24/7</div><div class="text-[10px] text-slate-500">On-trip support</div></div></div>
+        <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg glass-sm flex items-center justify-center"><i data-lucide="star" class="w-4 h-4 text-cyan-400"></i></div><div class="text-left"><div class="text-xs font-medium">4.8★</div><div class="text-[10px] text-slate-500">5,200+ reviews</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trending Destinations -->
+  <section class="py-20 px-4 sm:px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex items-end justify-between mb-10">
+        <div><div class="text-[11px] font-semibold text-cyan-400 uppercase tracking-widest mb-2">Trending Now</div><h2 class="section-title text-2xl md:text-3xl font-bold tracking-tight">Popular Destinations</h2></div>
+        <div class="hidden sm:flex gap-2">
+          <button onclick="document.getElementById('home-dest-scroll').scrollBy({left:-310,behavior:'smooth'})" class="w-9 h-9 rounded-lg glass-sm flex items-center justify-center text-slate-400 hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+          <button onclick="document.getElementById('home-dest-scroll').scrollBy({left:310,behavior:'smooth'})" class="w-9 h-9 rounded-lg glass-sm flex items-center justify-center text-slate-400 hover:text-white transition-colors"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+        </div>
+      </div>
+      <div id="home-dest-scroll" class="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory" style="scrollbar-width:none;-ms-overflow-style:none"></div>
+    </div>
+  </section>
+
+  <!-- Featured Packages -->
+  <section class="py-20 px-4 sm:px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-12"><div class="text-[11px] font-semibold text-cyan-400 uppercase tracking-widest mb-2">Curated Packages</div><h2 class="section-title text-2xl md:text-3xl font-bold tracking-tight">Trending This Season</h2></div>
+      <div id="home-packages" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="py-20 px-4 sm:px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16"><div class="text-[11px] font-semibold text-cyan-400 uppercase tracking-widest mb-2">Simple Process</div><h2 class="section-title text-2xl md:text-3xl font-bold tracking-tight">How It Works</h2></div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="text-center"><div class="w-16 h-16 mx-auto mb-5 rounded-2xl glass-md flex items-center justify-center"><i data-lucide="compass" class="w-7 h-7 text-cyan-400"></i></div><div class="text-[11px] font-bold text-cyan-400/50 mb-2">01</div><h3 class="text-base font-semibold mb-2">Choose Destination</h3><p class="text-xs text-slate-400 leading-relaxed">Browse or search — we'll match you with the perfect spot.</p></div>
+        <div class="text-center"><div class="w-16 h-16 mx-auto mb-5 rounded-2xl glass-md flex items-center justify-center"><i data-lucide="sliders-horizontal" class="w-7 h-7 text-violet-400"></i></div><div class="text-[11px] font-bold text-violet-400/50 mb-2">02</div><h3 class="text-base font-semibold mb-2">Customize Everything</h3><p class="text-xs text-slate-400 leading-relaxed">Hotels, activities, pace — tailor every detail your way.</p></div>
+        <div class="text-center"><div class="w-16 h-16 mx-auto mb-5 rounded-2xl glass-md flex items-center justify-center"><i data-lucide="plane-takeoff" class="w-7 h-7 text-cyan-400"></i></div><div class="text-[11px] font-bold text-cyan-400/50 mb-2">03</div><h3 class="text-base font-semibold mb-2">Book & Go</h3><p class="text-xs text-slate-400 leading-relaxed">One-click confirmation with 24/7 trip support.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="py-20 px-4 sm:px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-12"><div class="text-[11px] font-semibold text-cyan-400 uppercase tracking-widest mb-2">Real Stories</div><h2 class="section-title text-2xl md:text-3xl font-bold tracking-tight">Travellers Love Us</h2></div>
+      <div id="home-reviews" class="grid md:grid-cols-3 gap-6"></div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="py-16 border-y border-white/[0.04]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center" id="home-stats">
+      <div><div class="text-3xl md:text-4xl font-extrabold text-cyan-400 counter" data-target="150">0</div><div class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Destinations</div></div>
+      <div><div class="text-3xl md:text-4xl font-extrabold text-cyan-400 counter" data-target="25000">0</div><div class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Happy Travellers</div></div>
+      <div><div class="text-3xl md:text-4xl font-extrabold text-cyan-400 counter" data-target="500">0</div><div class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Itineraries Made</div></div>
+      <div><div class="text-3xl md:text-4xl font-extrabold text-violet-400">4.8</div><div class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Avg Rating</div></div>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== PAGE: DESTINATIONS ==================== -->
+<div id="page-destinations" class="page mesh-dest pt-24 pb-20 px-4 sm:px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-8"><h1 class="section-title text-2xl md:text-3xl font-bold tracking-tight mb-2">All Destinations</h1><p class="text-sm text-slate-400">Explore our complete catalog of handpicked destinations.</p></div>
+    <!-- Filters -->
+    <div class="glass-md p-4 mb-8 flex flex-wrap gap-3 items-center">
+      <div class="flex-1 min-w-[200px] relative">
+        <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+        <input type="text" id="dest-search-input" placeholder="Search destinations..." class="w-full pl-10 pr-4 py-2.5 glass-input text-sm" oninput="filterDestinations()">
+      </div>
+      <select id="dest-region-filter" class="px-4 py-2.5 glass-input text-sm text-slate-300 min-w-[140px]" onchange="filterDestinations()">
+        <option value="">All Regions</option>
+        <option value="southeast-asia">Southeast Asia</option>
+        <option value="europe">Europe</option>
+        <option value="indian-ocean">Indian Ocean</option>
+        <option value="east-asia">East Asia</option>
+        <option value="middle-east">Middle East</option>
+        <option value="americas">Americas</option>
+        <option value="india">India</option>
+      </select>
+      <select id="dest-type-filter" class="px-4 py-2.5 glass-input text-sm text-slate-300 min-w-[130px]" onchange="filterDestinations()">
+        <option value="">All Types</option>
+        <option value="beach">Beach</option>
+        <option value="mountain">Mountain</option>
+        <option value="city">City</option>
+        <option value="island">Island</option>
+        <option value="heritage">Heritage</option>
+      </select>
+      <select id="dest-sort" class="px-4 py-2.5 glass-input text-sm text-slate-300 min-w-[140px]" onchange="filterDestinations()">
+        <option value="popular">Most Popular</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+        <option value="rating">Highest Rated</option>
+      </select>
+    </div>
+    <div id="dest-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+    <div id="dest-empty" class="hidden text-center py-20"><i data-lucide="search-x" class="w-12 h-12 text-slate-600 mx-auto mb-4"></i><p class="text-slate-500">No destinations match your filters.</p><button class="btn-ghost mt-3 text-sm" onclick="clearDestFilters()">Clear Filters</button></div>
+  </div>
+</div>
+
+<!-- ==================== PAGE: PACKAGE DETAIL ==================== -->
+<div id="page-package" class="page mesh-package pt-24 pb-20 px-4 sm:px-6">
+  <div id="package-detail-content" class="max-w-6xl mx-auto"></div>
+</div>
+
+<!-- ==================== PAGE: MY TRIPS ==================== -->
+<div id="page-trips" class="page mesh-trips pt-24 pb-20 px-4 sm:px-6">
+  <div class="max-w-5xl mx-auto">
+    <div class="mb-8"><h1 class="section-title text-2xl md:text-3xl font-bold tracking-tight mb-2">My Trips</h1><p class="text-sm text-slate-400">Track and manage all your bookings.</p></div>
+    <div class="flex gap-2 mb-8">
+      <button class="trip-tab tab-btn active" data-filter="all" onclick="filterTrips('all',this)">All</button>
+      <button class="trip-tab tab-btn" data-filter="upcoming" onclick="filterTrips('upcoming',this)">Upcoming</button>
+      <button class="trip-tab tab-btn" data-filter="ongoing" onclick="filterTrips('ongoing',this)">Ongoing</button>
+      <button class="trip-tab tab-btn" data-filter="completed" onclick="filterTrips('completed',this)">Completed</button>
+      <button class="trip-tab tab-btn" data-filter="cancelled" onclick="filterTrips('cancelled',this)">Cancelled</button>
+    </div>
+    <div id="trips-list" class="space-y-4"></div>
+    <div id="trips-empty" class="hidden text-center py-20"><i data-lucide="luggage" class="w-12 h-12 text-slate-600 mx-auto mb-4"></i><p class="text-slate-500 mb-1">No trips found.</p><p class="text-xs text-slate-600 mb-4">Book your first trip to see it here.</p><button class="btn-primary px-6 py-2.5 text-sm" onclick="navigate('destinations')">Browse Destinations</button></div>
+  </div>
+</div>
+
+<!-- ==================== PAGE: CHECKOUT ==================== -->
+<div id="page-checkout" class="page mesh-checkout pt-24 pb-20 px-4 sm:px-6">
+  <div class="max-w-5xl mx-auto">
+    <div class="mb-8"><h1 class="section-title text-2xl md:text-3xl font-bold tracking-tight mb-2">Checkout</h1><p class="text-sm text-slate-400">Review your selection and complete your booking.</p></div>
+    <div id="checkout-content"></div>
+  </div>
+</div>
+
+<!-- ==================== PAGE: PROFILE ==================== -->
+<div id="page-profile" class="page mesh-profile pt-24 pb-20 px-4 sm:px-6">
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8"><h1 class="section-title text-2xl md:text-3xl font-bold tracking-tight mb-2">Profile</h1><p class="text-sm text-slate-400">Manage your account and preferences.</p></div>
+    <div id="profile-content"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer id="main-footer" class="border-t border-white/[0.04] pt-16 pb-8 px-4 sm:px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+      <div class="col-span-2 md:col-span-1">
+        <a href="#/" class="flex items-center gap-2 mb-4" onclick="navigate('home')"><div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center"><i data-lucide="ship" class="w-4 h-4 icon-solid"></i></div><span class="text-base font-bold">pickur<span class="text-cyan-400">ship</span></span></a>
+        <p class="text-xs text-slate-500 leading-relaxed mb-4">Enterprise-grade travel planning, personalized for every traveller.</p>
+        <div class="flex gap-2">
+          <a href="#" class="w-8 h-8 rounded-lg glass-sm flex items-center justify-center text-slate-500 hover:text-cyan-400 transition-colors"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></a>
+          <a href="#" class="w-8 h-8 rounded-lg glass-sm flex items-center justify-center text-slate-500 hover:text-cyan-400 transition-colors"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+          <a href="#" class="w-8 h-8 rounded-lg glass-sm flex items-center justify-center text-slate-500 hover:text-cyan-400 transition-colors"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg></a>
+        </div>
+      </div>
+      <div><h4 class="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Destinations</h4><ul class="space-y-2"><li><a href="#/destinations" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors" onclick="navigate('destinations')">All Destinations</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Bali</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Maldives</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Europe</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Japan</a></li></ul></div>
+      <div><h4 class="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Trip Types</h4><ul class="space-y-2"><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Honeymoon</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Family</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Adventure</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Weekend</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Solo</a></li></ul></div>
+      <div><h4 class="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Company</h4><ul class="space-y-2"><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">About</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Careers</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Blog</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Press</a></li></ul></div>
+      <div><h4 class="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Support</h4><ul class="space-y-2"><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Help Center</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Privacy</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Terms</a></li><li><a href="#" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Cancellation</a></li></ul></div>
+    </div>
+    <div class="border-t border-white/[0.04] pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
+      <p class="text-[11px] text-slate-600">© 2025 pickurship Technologies Pvt. Ltd. All rights reserved.</p>
+      <div class="flex items-center gap-3"><span class="text-[10px] text-slate-600">Payments:</span><div class="flex gap-1.5"><span class="px-2 py-1 glass-sm text-[9px] text-slate-500 font-medium">VISA</span><span class="px-2 py-1 glass-sm text-[9px] text-slate-500 font-medium">MC</span><span class="px-2 py-1 glass-sm text-[9px] text-slate-500 font-medium">UPI</span><span class="px-2 py-1 glass-sm text-[9px] text-slate-500 font-medium">EMI</span></div></div>
+    </div>
+  </div>
+</footer>
+
+<!-- WHATSAPP -->
+<a href="#" class="fixed bottom-6 left-6 z-50 w-13 h-13 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-green-500/30 transition-all hover:scale-110 group">
+  <svg class="w-6 h-6 icon-solid" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<!-- BACK TO TOP -->
+<button id="btt" class="fixed bottom-6 right-6 z-50 w-10 h-10 glass-sm flex items-center justify-center text-slate-400 hover:text-cyan-400 transition-all opacity-0 translate-y-4 pointer-events-none" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i data-lucide="chevron-up" class="w-5 h-5"></i></button>
+
+<script>
+// ============================
+// DATA LAYER
+// ============================
+const DESTINATIONS = [
+  {id:'bali',name:'Bali',country:'Indonesia',region:'southeast-asia',type:'beach',image:'bali-rice-terrace-lush',avgPrice:45999,rating:4.8,reviews:2340,popular:98,desc:'Tropical paradise with ancient temples, rice terraces, and vibrant culture.'},
+  {id:'paris',name:'Paris',country:'France',region:'europe',type:'city',image:'paris-eiffel-twilight-city',avgPrice:89999,rating:4.7,reviews:1890,popular:95,desc:'The city of love, art, and world-class cuisine.'},
+  {id:'maldives',name:'Maldives',country:'Maldives',region:'indian-ocean',type:'island',image:'maldives-aerial-turquoise-reef',avgPrice:129999,rating:4.9,reviews:3120,popular:97,desc:'Overwater villas, crystal lagoons, and unmatched luxury.'},
+  {id:'tokyo',name:'Tokyo',country:'Japan',region:'east-asia',type:'city',image:'tokyo-neon-street-night',avgPrice:115999,rating:4.8,reviews:1430,popular:92,desc:'Where ancient tradition meets cutting-edge modernity.'},
+  {id:'swiss',name:'Swiss Alps',country:'Switzerland',region:'europe',type:'mountain',image:'swiss-alps-lake-reflect',avgPrice:145999,rating:4.9,reviews:980,popular:90,desc:'Majestic peaks, pristine lakes, and scenic train journeys.'},
+  {id:'santorini',name:'Santorini',country:'Greece',region:'europe',type:'island',image:'santorini-white-dome-blue',avgPrice:95999,rating:4.8,reviews:1670,popular:93,desc:'Iconic white-washed cliffs overlooking the Aegean Sea.'},
+  {id:'dubai',name:'Dubai',country:'UAE',region:'middle-east',type:'city',image:'dubai-skyline-golden-hour',avgPrice:55999,rating:4.6,reviews:2100,popular:91,desc:'Futuristic architecture, desert adventures, and luxury shopping.'},
+  {id:'phuket',name:'Phuket',country:'Thailand',region:'southeast-asia',type:'beach',image:'phuket-longtail-emerald',avgPrice:38999,rating:4.7,reviews:2780,popular:89,desc:'Vibrant nightlife, stunning beaches, and Thai hospitality.'},
+  {id:'rome',name:'Rome',country:'Italy',region:'europe',type:'heritage',image:'rome-colosseum-golden',avgPrice:82999,rating:4.7,reviews:1560,popular:88,desc:'Eternal city with millennia of history and art.'},
+  {id:'kerala',name:'Kerala',country:'India',region:'india',type:'heritage',image:'kerala-houseboat-backwater',avgPrice:24999,rating:4.6,reviews:3200,popular:85,desc:'Serene backwaters, Ayurvedic wellness, and lush greenery.'},
+  {id:'iceland',name:'Iceland',country:'Iceland',region:'europe',type:'mountain',image:'iceland-aurora-waterfall',avgPrice:175999,rating:4.9,reviews:640,popular:82,desc:'Northern lights, geysers, and otherworldly landscapes.'},
+  {id:'goa',name:'Goa',country:'India',region:'india',type:'beach',image:'goa-sunset-beach-shack',avgPrice:15999,rating:4.5,reviews:4100,popular:87,desc:'Sun, sand, seafood, and Portuguese heritage.'},
+  {id:'newyork',name:'New York',country:'USA',region:'americas',type:'city',image:'newyork-manhattan-skyline',avgPrice:135999,rating:4.7,reviews:1120,popular:91,desc:'The city that never sleeps — Broadway, Central Park, and beyond.'},
+  {id:'manali',name:'Manali',country:'India',region:'india',type:'mountain',image:'manali-snow-peaks-pine',avgPrice:18999,rating:4.5,reviews:2800,popular:80,desc:'Snow-capped mountains, adventure sports, and mountain passes.'},
+  {id:'singapore',name:'Singapore',country:'Singapore',region:'southeast-asia',type:'city',image:'singapore-marina-bay-night',avgPrice:65999,rating:4.7,reviews:1940,popular:86,desc:'Garden city with futuristic attractions and diverse cuisine.'},
+  {id:'srilanka',name:'Sri Lanka',country:'Sri Lanka',region:'southeast-asia',type:'heritage',image:'srilanka-tea-plantation-hill',avgPrice:34999,rating:4.6,reviews:890,popular:78,desc:'Tea plantations, ancient ruins, and pristine beaches.'}
+];
+
+const PACKAGES = [
+  {id:'bali-bliss',name:'Bali Bliss Escape',destId:'bali',duration:{n:5,d:6},price:62999,orig:85000,images:['bali-temple-gate-morning','bali-pool-villa-tropical','bali-rice-terrace-sunrise','bali-beach-sunset-silhouette'],rating:4.9,reviews:234,tag:'Bestseller',tagClass:'tag-amber',category:'beach',
+    inclusions:['Airport Transfers','5★ Villa Stay','Daily Breakfast','3 Guided Tours','Snorkeling Trip','Spa Session','24/7 Support'],
+    exclusions:['International Flights','Visa Fees','Personal Expenses','Travel Insurance','Meals not mentioned'],
+    itinerary:[
+      {day:1,title:'Arrival & Seminyak',desc:'Airport pickup, private villa check-in. Evening walk along Seminyak beach and welcome dinner at a beachfront restaurant.',meals:'Dinner',hotel:'Villa Seminyak Oasis'},
+      {day:2,title:'Ubud Cultural Tour',desc:'Tegallalang rice terraces, Sacred Monkey Forest, traditional Balinese cooking class, and sunset at Campuhan Ridge.',meals:'Breakfast, Lunch',hotel:'Villa Seminyak Oasis'},
+      {day:3,title:'Waterfall & Temple Trail',desc:'Tegenungan Waterfall, Tirta Empul purification temple, Kintamani volcano viewpoint lunch.',meals:'Breakfast, Lunch',hotel:'Villa Seminyak Oasis'},
+      {day:4,title:'Nusa Penida Day Trip',desc:'Fast boat to Nusa Penida. Kelingking Beach, Angel\'s Billabong, Broken Beach, Crystal Bay snorkeling.',meals:'Breakfast, Lunch',hotel:'Villa Seminyak Oasis'},
+      {day:5,title:'Relaxation & Departure',desc:'Morning Balinese spa session, last-minute shopping at Seminyak galleries, airport drop-off.',meals:'Breakfast',hotel:'—'}
+    ],
+    pkgReviews:[{name:'Priya S.',date:'Oct 2024',text:'Absolutely perfect trip! Every detail was thought through.',rating:5},{name:'Arjun M.',date:'Sep 2024',text:'The villa was stunning and the itinerary was well-paced.',rating:5},{name:'Sneha K.',date:'Aug 2024',text:'Nusa Penida day trip was the highlight. Great organization.',rating:4}]
+  },
+  {id:'maldives-honeymoon',name:'Maldives Honeymoon Special',destId:'maldives',duration:{n:5,d:6},price:149999,orig:190000,images:['maldives-overwater-sunset','maldives-underwater-restaurant','maldives-beach-palm-bungalow','maldives-couple-kayak-clear'],rating:5.0,reviews:312,tag:'Most Loved',tagClass:'tag-rose',category:'beach',
+    inclusions:['Speedboat Transfers','5★ Overwater Villa','All Meals','Couple Spa','Sunset Cruise','Snorkeling Gear','Decorated Room','24/7 Concierge'],
+    exclusions:['International Flights','Visa Fees','Personal Expenses','Travel Insurance','Premium Alcohol'],
+    itinerary:[
+      {day:1,title:'Arrival & Overwater Villa',desc:'Speedboat transfer from Male airport, check-in to your private overwater villa with glass floor. Candlelight dinner on the deck.',meals:'Dinner',hotel:'Coral Paradise Resort'},
+      {day:2,title:'Island Exploration',desc:'Guided island tour, snorkeling with mantas, sandbank picnic lunch.',meals:'All Meals',hotel:'Coral Paradise Resort'},
+      {day:3,title:'Spa & Sunset Cruise',desc:'Morning couples spa, afternoon free. Private sunset dhoni cruise with champagne.',meals:'All Meals',hotel:'Coral Paradise Resort'},
+      {day:4,title:'Underwater Dining',desc:'Morning dolphin watching, afternoon underwater restaurant experience, beach bonfire dinner.',meals:'All Meals',hotel:'Coral Paradise Resort'},
+      {day:5,title:'Leisure & Departure',desc:'Free morning for water sports or relaxation. Late checkout, speedboat back to Male.',meals:'Breakfast, Lunch',hotel:'—'}
+    ],
+    pkgReviews:[{name:'Rahul & Anjali',date:'Sep 2024',text:'Dream honeymoon! The overwater villa was beyond anything we imagined.',rating:5},{name:'Vikram & Pooja',date:'Aug 2024',text:'Every moment felt magical. The sunset cruise was unforgettable.',rating:5}]
+  },
+  {id:'swiss-adventure',name:'Swiss Mountain Adventure',destId:'swiss',duration:{n:6,d:7},price:165999,orig:200000,images:['swiss-train-mountain-scenic','swiss-lucerne-chapel-bridge','swiss-jungfraujoch-snow','swiss-interlaken-paraglide'],rating:4.9,reviews:156,tag:'Adventure',tagClass:'tag-cyan',category:'mountain',
+    inclusions:['All Train Passes','4★ Alpine Hotels','Daily Breakfast','Jungfraujoch Tour','Paragliding','Lake Cruise','Swiss Travel Card','24/7 Support'],
+    exclusions:['International Flights','Visa Fees','Personal Expenses','Travel Insurance','Lunches & Dinners'],
+    itinerary:[
+      {day:1,title:'Arrive in Zurich',desc:'Airport pickup, train to Lucerne. Evening stroll along Lake Lucerne and Chapel Bridge.',meals:'—',hotel:'Hotel Lucerne Heights'},
+      {day:2,title:'Mt. Titlis & Lucerne',desc:'Rotair cable car to Mt. Titlis, ice cave, cliff walk. Afternoon Lucerne city tour.',meals:'Breakfast',hotel:'Hotel Lucerne Heights'},
+      {day:3,title:'GoldenPass to Interlaken',desc:'Scenic GoldenPass train ride. Afternoon free to explore Interlaken.',meals:'Breakfast',hotel:'Hotel Interlaken View'},
+      {day:4,title:'Jungfraujoch',desc:'Train to Top of Europe — Jungfraujoch. Ice Palace, Sphinx Observatory, snow activities.',meals:'Breakfast',hotel:'Hotel Interlaken View'},
+      {day:5,title:'Paragliding & Bern',desc:'Morning tandem paragliding over Interlaken. Afternoon train to Bern for old town exploration.',meals:'Breakfast',hotel:'Hotel Bern Classic'},
+      {day:6,title:'Zurich & Departure',desc:'Train to Zurich, city tour, lake cruise. Airport drop-off.',meals:'Breakfast',hotel:'—'}
+    ],
+    pkgReviews:[{name:'Deepak R.',date:'Jul 2024',text:'The train journeys were spectacular. Jungfraujoch was surreal.',rating:5},{name:'Nisha T.',date:'Jun 2024',text:'Paragliding over Interlaken — once in a lifetime experience!',rating:5}]
+  },
+  {id:'tokyo-culture',name:'Tokyo Culture Trail',destId:'tokyo',duration:{n:6,d:7},price:125999,orig:155000,images:['tokyo-shibuya-crossing-neon','tokyo-fuji-lake-kawaguchi','tokyo-temple-gate-red','tokyo-ramen-street-food'],rating:4.7,reviews:143,tag:'New',tagClass:'tag-emerald',category:'city',
+    inclusions:['Airport Transfers','4★ Hotels','Daily Breakfast','Guided City Tours','Mt. Fuji Day Trip','Tea Ceremony','JR Pass (7 days)','24/7 Support'],
+    exclusions:['International Flights','Visa Fees','Personal Expenses','Travel Insurance','Most Lunches & Dinners'],
+    itinerary:[
+      {day:1,title:'Arrive in Tokyo',desc:'Narita airport transfer, hotel check-in in Shinjuku. Evening walk through neon-lit streets.',meals:'—',hotel:'Shinjuku Grand Hotel'},
+      {day:2,title:'Classic Tokyo',desc:'Meiji Shrine, Harajuku, Shibuya Crossing, teamLab Borderless digital art museum.',meals:'Breakfast',hotel:'Shinjuku Grand Hotel'},
+      {day:3,title:'Traditional Tokyo',desc:'Asakusa Senso-ji temple, Ueno Park, Akihabara electric town, traditional tea ceremony.',meals:'Breakfast',hotel:'Shinjuku Grand Hotel'},
+      {day:4,title:'Mt. Fuji Day Trip',desc:'Bullet train to Kawaguchiko, Mt. Fuji views, Lake Kawaguchi cruise, Hakone hot springs.',meals:'Breakfast, Lunch',hotel:'Shinjuku Grand Hotel'},
+      {day:5,title:'Modern Tokyo',desc:'Tsukiji outer market food tour, Tokyo Tower, Roppongi Hills, shopping in Ginza.',meals:'Breakfast',hotel:'Shinjuku Grand Hotel'},
+      {day:6,title:'Free Day & Departure',desc:'Free morning for last-minute shopping or exploration. Airport transfer.',meals:'Breakfast',hotel:'—'}
+    ],
+    pkgReviews:[{name:'Meera K.',date:'Apr 2024',text:'Cherry blossom season in Tokyo was magical. Perfectly planned!',rating:5},{name:'Aditya S.',date:'Mar 2024',text:'teamLab and the tea ceremony were incredible highlights.',rating:4}]
+  },
+  {id:'thai-island',name:'Thai Island Hopper',destId:'phuket',duration:{n:5,d:6},price:48999,orig:65000,images:['thailand-phi-phi-boat','thailand-railay-cliff-beach','thailand-night-market-food','thailand-krabi-kayak-lime'],rating:4.8,reviews:278,tag:'Value Pick',tagClass:'tag-violet',category:'beach',
+    inclusions:['All Transfers','4★ Resorts','Daily Breakfast','Phi Phi Island Tour','Railay Beach Trip','Thai Cooking Class','24/7 Support'],
+    exclusions:['International Flights','Visa on Arrival','Personal Expenses','Travel Insurance','Meals not mentioned'],
+    itinerary:[
+      {day:1,title:'Arrive Phuket',desc:'Airport pickup, resort check-in at Patong Beach. Evening Patong night market walk.',meals:'—',hotel:'Patong Sea Breeze Resort'},
+      {day:2,title:'Phi Phi Islands',desc:'Speedboat to Phi Phi — Maya Bay, Monkey Beach, snorkeling at Pileh Lagoon, buffet lunch.',meals:'Breakfast, Lunch',hotel:'Patong Sea Breeze Resort'},
+      {day:3,title:'Krabi & Railay',desc:'Transfer to Krabi, longtail boat to Railay Beach. Rock climbing, cave exploration.',meals:'Breakfast',hotel:'Krabi Cliff Resort'},
+      {day:4,title:'Four Islands Tour',desc:'Chicken Island, Tup Island, Poda Island, Hong Island. Swimming and snorkeling.',meals:'Breakfast, Lunch',hotel:'Krabi Cliff Resort'},
+      {day:5,title:'Cooking Class & Departure',desc:'Morning Thai cooking class, afternoon transfer to Phuket airport.',meals:'Breakfast, Lunch',hotel:'—'}
+    ],
+    pkgReviews:[{name:'Kavitha N.',date:'Nov 2024',text:'Incredible value for money. Phi Phi was paradise!',rating:5},{name:'Rohan D.',date:'Oct 2024',text:'The cooking class was a fun surprise. Great organization.',rating:4}]
+  },
+  {id:'paris-dream',name:'Parisian Dream',destId:'paris',duration:{n:5,d:6},price:105999,orig:130000,images:['paris-eiffel-night-glow','paris-louvre-glass-pyramid','paris-montmartre-stairs','paris-seine-river-dusk'],rating:4.8,reviews:189,tag:'Premium',tagClass:'tag-violet',category:'city',
+    inclusions:['Airport Transfers','4★ Central Hotel','Daily Breakfast','Louvre Museum Skip-the-Line','Seine River Cruise','Montmartre Walking Tour','Versailles Day Trip','24/7 Support'],
+    exclusions:['International Flights','Visa Fees','Personal Expenses','Travel Insurance','Most Lunches & Dinners'],
+    itinerary:[
+      {day:1,title:'Arrive in Paris',desc:'CDG airport transfer, hotel check-in near Champs-Élysées. Evening Seine river cruise.',meals:'—',hotel:'Hotel Champs Élysées Inn'},
+      {day:2,title:'Iconic Paris',desc:'Eiffel Tower summit, Trocadéro, Arc de Triomphe, walk down Champs-Élysées.',meals:'Breakfast',hotel:'Hotel Champs Élysées Inn'},
+      {day:3,title:'Art & Culture',desc:'Louvre Museum skip-the-line, Notre-Dame area, Latin Quarter, Panthéon.',meals:'Breakfast',hotel:'Hotel Champs Élysées Inn'},
+      {day:4,title:'Versailles Palace',desc:'Full day at Palace of Versailles — Hall of Mirrors, gardens, Marie Antoinette\'s estate.',meals:'Breakfast',hotel:'Hotel Champs Élysées Inn'},
+      {day:5,title:'Montmartre & Departure',desc:'Sacré-Cœur, Montmartre artists\' square, last-minute shopping. Airport drop.',meals:'Breakfast',hotel:'—'}
+    ],
+    pkgReviews:[{name:'Anita G.',date:'Oct 2024',text:'Versailles was breathtaking. The skip-the-line Louvre access saved hours!',rating:5},{name:'Sanjay P.',date:'Sep 2024',text:'Perfect Paris experience. Hotel location was ideal.',rating:4}]
+  }
+];
+
+const SAMPLE_TRIPS = [
+  {id:'TRP-20250115001',pkgId:'bali-bliss',status:'upcoming',bookedOn:'2025-01-15',travelDate:'2025-03-15',travellers:2,adults:2,children:0,totalPaid:125998,ref:'PKS20250115001'},
+  {id:'TRP-20241201002',pkgId:'maldives-honeymoon',status:'completed',bookedOn:'2024-12-01',travelDate:'2024-12-20',travellers:2,adults:2,children:0,totalPaid:299998,ref:'PKS20241201002'},
+  {id:'TRP-20250110003',pkgId:'thai-island',status:'upcoming',bookedOn:'2025-01-10',travelDate:'2025-04-05',travellers:3,adults:2,children:1,totalPaid:136998,ref:'PKS20250110003'},
+  {id:'TRP-20241101004',pkgId:'paris-dream',status:'cancelled',bookedOn:'2024-11-01',travelDate:'2024-11-25',travellers:2,adults:2,children:0,totalPaid:0,ref:'PKS20241101004',cancelReason:'Visa delay'}
+];
+
+const SAMPLE_USER = {
+  name:'Arjun Mehta', email:'arjun.mehta@email.com', phone:'+91 98765 43210',
+  dob:'1994-06-15', gender:'Male', nationality:'Indian', passport:'J8765432',
+  address:'42, HSR Layout, Bengaluru, Karnataka 560102',
+  prefDestinations:['bali','maldives','swiss'], prefType:'beach', prefBudget:'premium',
+  notifications:{email:true,sms:true,whatsapp:false,promos:false}
+};
+
+const HOME_REVIEWS = [
+  {name:'Priya Sharma',text:'The Bali itinerary was flawless — every hotel, every transfer was perfect. pickurship handled everything.',rating:5,trip:'Bali Trip',date:'Oct 2024',img:'woman-smile-portrait-1'},
+  {name:'Rahul & Anjali',text:'Our Maldives honeymoon was beyond our wildest dreams. The overwater villa they picked was unreal.',rating:5,trip:'Maldives Trip',date:'Sep 2024',img:'couple-smile-2'},
+  {name:'Meera Kapoor',text:'Japan during cherry blossom season — a dream come true! Hidden gems we\'d never have found alone.',rating:5,trip:'Japan Trip',date:'Apr 2024',img:'woman-portrait-3'}
+];
+
+// ============================
+// STATE MANAGEMENT
+// ============================
+const Store = {
+  _state: {
+    cart: [],
+    trips: JSON.parse(JSON.stringify(SAMPLE_TRIPS)),
+    user: JSON.parse(JSON.stringify(SAMPLE_USER)),
+    currentPage: 'home',
+    searchType: 'holidays',
+    homeDest: '',
+    homeAdults: 2,
+    homeChildren: 0,
+    checkoutStep: 0,
+    checkoutForm: { firstName:'',lastName:'',email:'',phone:'',dob:'',gender:'',passport:'',address:'',specialReqs:'' }
+  },
+  _listeners: [],
+  get(key) { return key ? this._state[key] : this._state; },
+  set(key, val) { this._state[key] = val; this._notify(); },
+  subscribe(fn) { this._listeners.push(fn); },
+  _notify() { this._listeners.forEach(fn => fn(this._state)); },
+  addToCart(pkgId, adults, children) {
+    const existing = this._state.cart.find(c => c.pkgId === pkgId);
+    if (existing) { existing.adults = adults; existing.children = children; }
+    else { this._state.cart.push({ pkgId, adults, children, addedAt: Date.now() }); }
+    this._notify();
+  },
+  removeFromCart(pkgId) {
+    this._state.cart = this._state.cart.filter(c => c.pkgId !== pkgId);
+    this._notify();
+  },
+  getCartTotal() {
+    return this._state.cart.reduce((sum, item) => {
+      const pkg = PACKAGES.find(p => p.id === item.pkgId);
+      if (!pkg) return sum;
+      return sum + (pkg.price * item.adults) + (Math.floor(pkg.price * 0.6) * item.children);
+    }, 0);
+  },
+  getCartCount() { return this._state.cart.reduce((s, c) => s + c.adults + c.children, 0); },
+  completeBooking() {
+    const cart = this._state.cart;
+    if (cart.length === 0) return null;
+    const ref = 'PKS' + Date.now().toString().slice(-10);
+    cart.forEach(item => {
+      const pkg = PACKAGES.find(p => p.id === item.pkgId);
+      const trip = {
+        id: 'TRP-' + Date.now().toString().slice(-10) + Math.random().toString(36).slice(2,4).toUpperCase(),
+        pkgId: item.pkgId, status: 'upcoming', bookedOn: new Date().toISOString().slice(0,10),
+        travelDate: new Date(Date.now() + 30*86400000).toISOString().slice(0,10),
+        travellers: item.adults + item.children, adults: item.adults, children: item.children,
+        totalPaid: (pkg.price * item.adults) + (Math.floor(pkg.price * 0.6) * item.children),
+        ref
+      };
+      this._state.trips.unshift(trip);
+    });
+    this._state.cart = [];
+    this._state.checkoutStep = 0;
+    this._notify();
+    return ref;
+  },
+  cancelTrip(tripId) {
+    const trip = this._state.trips.find(t => t.id === tripId);
+    if (trip && (trip.status === 'upcoming' || trip.status === 'ongoing')) {
+      trip.status = 'cancelled'; trip.cancelReason = 'Cancelled by user';
+      this._notify(); return true;
+    }
+    return false;
+  }
+};
+
+Store.subscribe(state => {
+  // Update cart badge
+  const badge = document.getElementById('cart-badge');
+  const count = Store.getCartCount();
+  if (count > 0) { badge.textContent = count; badge.classList.remove('hidden'); badge.classList.add('flex'); }
+  else { badge.classList.add('hidden'); badge.classList.remove('flex'); }
+});
+
+// ============================
+// ROUTER
+// ============================
+function navigate(page, data) {
+  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); });
+  Store.set('currentPage', page);
+
+  // Update nav active
+  document.querySelectorAll('.nav-link').forEach(l => {
+    l.classList.toggle('text-white', l.dataset.page === page);
+    l.classList.toggle('text-slate-400', l.dataset.page !== page);
+    l.classList.toggle('bg-white/5', l.dataset.page === page);
+  });
+
+  const el = document.getElementById('page-' + page);
+  if (el) {
+    el.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  // Page-specific init
+  if (page === 'destinations') renderDestinationsPage();
+  if (page === 'package') renderPackagePage(data);
+  if (page === 'trips') renderTripsPage();
+  if (page === 'checkout') renderCheckoutPage();
+  if (page === 'profile') renderProfilePage();
+  if (page === 'home') { renderHomeDests(); renderHomePackages(); renderHomeReviews(); initCounters(); }
+
+  // Close mobile menu
+  document.getElementById('mobile-menu').classList.add('hidden');
+}
+
+// Hash-based routing
+window.addEventListener('hashchange', () => {
+  const hash = location.hash.slice(1) || '/';
+  if (hash.startsWith('/package/')) navigate('package', hash.split('/package/')[1]);
+  else if (hash === '/destinations') navigate('destinations');
+  else if (hash === '/trips') navigate('trips');
+  else if (hash === '/checkout') navigate('checkout');
+  else if (hash === '/profile') navigate('profile');
+  else navigate('home');
+});
+
+// ============================
+// TOAST
+// ============================
+function showToast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const icons = { success:'check-circle', error:'alert-circle', info:'info' };
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<i data-lucide="${icons[type]||'info'}" class="w-4 h-4 shrink-0"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  lucide.createIcons({nodes:[t]});
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(100px)'; t.style.transition = 'all .3s'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+// ============================
+// MODAL
+// ============================
+function openModal(html) { document.getElementById('modal-body').innerHTML = html; document.getElementById('modal-overlay').classList.add('open'); lucide.createIcons({nodes:document.getElementById('modal-body')}); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+// ============================
+// UTILITIES
+// ============================
+function fmt(n) { return '₹' + n.toLocaleString('en-IN'); }
+function stars(r) { let s=''; for(let i=1;i<=5;i++) s+=`<i data-lucide="star" class="w-3 h-3 ${i<=Math.round(r)?'text-amber-400 fill-amber-400':'text-slate-600'}"></i>`; return s; }
+function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
+
+function adjustTrav(prefix, type, delta) {
+  const key = prefix + (type === 'adults' ? 'Adults' : 'Children');
+  let val = parseInt(document.getElementById(key).textContent) + delta;
+  if (type === 'adults') val = Math.max(1, Math.min(10, val));
+  else val = Math.max(0, Math.min(6, val));
+  document.getElementById(key).textContent = val;
+  Store.set(prefix+'Adults', val);
+  const label = document.getElementById(prefix+'-trav-label');
+  let t = val + ' Adult' + (val>1?'s':'');
+  const c = parseInt(document.getElementById(prefix+'Children').textContent);
+  if (c > 0) t += ', ' + c + ' Child' + (c>1?'ren':'');
+  label.textContent = t;
+}
+
+// ============================
+// HOME PAGE RENDERERS
+// ============================
+function renderHomeDests() {
+  const el = document.getElementById('home-dest-scroll');
+  el.innerHTML = DESTINATIONS.slice(0, 8).map(d => `
+    <div class="min-w-[260px] sm:min-w-[280px] snap-start shrink-0 glass card-lift img-zoom cursor-pointer group" onclick="navigate('destinations')">
+      <div class="relative h-48 overflow-hidden rounded-t-2xl">
+        <img src="https://picsum.photos/seed/${d.image}/600/400.jpg" alt="${d.name}" class="w-full h-full object-cover" loading="lazy">
+        <div class="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-transparent to-transparent"></div>
+        <span class="absolute top-3 right-3 tag tag-cyan">${d.type}</span>
+        <div class="absolute bottom-3 left-4"><h3 class="text-base font-semibold">${d.name}</h3><p class="text-[11px] text-slate-300">${d.country}</p></div>
+      </div>
+      <div class="p-4 flex items-center justify-between">
+        <div><div class="text-[10px] text-slate-500">From</div><div class="text-base font-bold text-cyan-400">${fmt(d.avgPrice)}</div></div>
+        <div class="flex items-center gap-1 text-[11px] text-slate-400"><i data-lucide="star" class="w-3 h-3 text-amber-400 fill-amber-400"></i>${d.rating}</div>
+      </div>
+    </div>
+  `).join('');
+  lucide.createIcons({nodes:el});
+}
+
+function renderHomePackages() {
+  const el = document.getElementById('home-packages');
+  el.innerHTML = PACKAGES.slice(0, 3).map(p => {
+    const dest = DESTINATIONS.find(d => d.id === p.destId);
+    return `
+    <div class="glass card-lift img-zoom cursor-pointer group" onclick="location.hash='#/package/${p.id}'">
+      <div class="relative h-52 overflow-hidden rounded-t-2xl">
+        <img src="https://picsum.photos/seed/${p.images[0]}/600/400.jpg" alt="${p.name}" class="w-full h-full object-cover" loading="lazy">
+        <div class="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-transparent to-transparent"></div>
+        <span class="absolute top-3 left-3 tag ${p.tagClass}">${p.tag}</span>
+        <div class="absolute top-3 right-3 glass-sm px-2 py-1 flex items-center gap-1 text-[11px]"><i data-lucide="star" class="w-3 h-3 text-amber-400 fill-amber-400"></i><span class="text-white font-medium">${p.rating}</span><span class="text-slate-400">(${p.reviews})</span></div>
+      </div>
+      <div class="p-5">
+        <div class="text-[11px] text-slate-500 mb-1">${dest?dest.name+', '+dest.country:''}</div>
+        <h3 class="text-[15px] font-semibold mb-3 group-hover:text-cyan-400 transition-colors">${p.name}</h3>
+        <div class="flex items-center gap-3 text-[11px] text-slate-400 mb-4">
+          <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>${p.duration.n}N/${p.duration.d}D</span>
+          <span class="flex items-center gap-1"><i data-lucide="utensils" class="w-3 h-3"></i>Meals</span>
+          <span class="flex items-center gap-1"><i data-lucide="car" class="w-3 h-3"></i>Transfers</span>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-white/[0.04]">
+          <div><span class="text-[11px] text-slate-500 line-through mr-1">${fmt(p.orig)}</span><span class="text-lg font-bold text-cyan-400">${fmt(p.price)}</span><span class="text-[10px] text-slate-500">/person</span></div>
+          <button class="btn-primary px-4 py-2 text-xs" onclick="event.stopPropagation();addToCartDirect('${p.id}')">Book</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  lucide.createIcons({nodes:el});
+}
+
+function renderHomeReviews() {
+  const el = document.getElementById('home-reviews');
+  el.innerHTML = HOME_REVIEWS.map(r => `
+    <div class="glass-md p-6 card-lift">
+      <div class="flex gap-0.5 mb-4">${stars(r.rating)}</div>
+      <p class="text-sm text-slate-300 leading-relaxed mb-5">"${r.text}"</p>
+      <div class="flex items-center gap-3">
+        <img src="https://picsum.photos/seed/${r.img}/80/80.jpg" class="w-9 h-9 rounded-full object-cover" alt="${r.name}">
+        <div><div class="text-sm font-medium">${r.name}</div><div class="text-[11px] text-slate-500">${r.trip} · ${r.date}</div></div>
+      </div>
+    </div>
+  `).join('');
+  lucide.createIcons({nodes:el});
+}
+
+function initCounters() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.counter').forEach(el => {
+          const target = parseInt(el.dataset.target);
+          const duration = 2000; const start = performance.now();
+          function tick(now) {
+            const p = Math.min((now - start) / duration, 1);
+            const e = 1 - Math.pow(1 - p, 3);
+            const v = Math.floor(e * target);
+            el.textContent = v >= 1000 ? (v/1000).toFixed(v>=10000?0:1)+'K+' : v+'+';
+            if (p < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        });
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  const statsEl = document.getElementById('home-stats');
+  if (statsEl) obs.observe(statsEl);
+}
+
+// ============================
+// DESTINATIONS PAGE
+// ============================
+function filterDestinations() { renderDestinationsPage(); }
+function clearDestFilters() {
+  document.getElementById('dest-search-input').value = '';
+  document.getElementById('dest-region-filter').value = '';
+  document.getElementById('dest-type-filter').value = '';
+  document.getElementById('dest-sort').value = 'popular';
+  renderDestinationsPage();
+}
+
+function renderDestinationsPage() {
+  let list = [...DESTINATIONS];
+  const q = (document.getElementById('dest-search-input')?.value || '').toLowerCase();
+  const region = document.getElementById('dest-region-filter')?.value || '';
+  const type = document.getElementById('dest-type-filter')?.value || '';
+  const sort = document.getElementById('dest-sort')?.value || 'popular';
+
+  if (q) list = list.filter(d => d.name.toLowerCase().includes(q) || d.country.toLowerCase().includes(q));
+  if (region) list = list.filter(d => d.region === region);
+  if (type) list = list.filter(d => d.type === type);
+  if (sort === 'price-low') list.sort((a,b) => a.avgPrice - b.avgPrice);
+  else if (sort === 'price-high') list.sort((a,b) => b.avgPrice - a.avgPrice);
+  else if (sort === 'rating') list.sort((a,b) => b.rating - a.rating);
+  else list.sort((a,b) => b.popular - a.popular);
+
+  const grid = document.getElementById('dest-grid');
+  const empty = document.getElementById('dest-empty');
+  if (list.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  grid.innerHTML = list.map(d => {
+    const pkgCount = PACKAGES.filter(p => p.destId === d.id).length;
+    return `
+    <div class="glass card-lift img-zoom cursor-pointer group" onclick="openDestDetail('${d.id}')">
+      <div class="relative h-44 overflow-hidden rounded-t-2xl">
+        <img src="https://picsum.photos/seed/${d.image}/600/400.jpg" alt="${d.name}" class="w-full h-full object-cover" loading="lazy">
+        <div class="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-transparent to-transparent"></div>
+        <span class="absolute top-3 right-3 tag tag-cyan">${d.type}</span>
+      </div>
+      <div class="p-4">
+        <div class="flex items-start justify-between mb-1">
+          <div><h3 class="text-base font-semibold group-hover:text-cyan-400 transition-colors">${d.name}</h3><p class="text-[11px] text-slate-500">${d.country}</p></div>
+          <div class="flex items-center gap-1 text-[11px] text-slate-400 shrink-0 ml-2"><i data-lucide="star" class="w-3 h-3 text-amber-400 fill-amber-400"></i>${d.rating}</div>
+        </div>
+        <p class="text-[11px] text-slate-500 leading-relaxed mb-3 line-clamp-2">${d.desc}</p>
+        <div class="flex items-center justify-between pt-3 border-t border-white/[0.04]">
+          <div><span class="text-[10px] text-slate-500">From </span><span class="text-sm font-bold text-cyan-400">${fmt(d.avgPrice)}</span></div>
+          <span class="text-[10px] text-slate-500">${pkgCount} package${pkgCount!==1?'s':''}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  lucide.createIcons({nodes:grid});
+}
+
+function openDestDetail(destId) {
+  const d = DESTINATIONS.find(x => x.id === destId);
+  const pkgs = PACKAGES.filter(p => p.destId === destId);
+  if (!d) return;
+  const html = `
+    <div class="relative h-48 -mx-6 -mt-6 mb-6 overflow-hidden rounded-t-2xl">
+      <img src="https://picsum.photos/seed/${d.image}/800/400.jpg" class="w-full h-full object-cover">
+      <div class="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/30 to-transparent"></div>
+      <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full glass-sm flex items-center justify-center text-white hover:text-cyan-400 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="flex items-center gap-2 mb-1"><span class="tag tag-cyan">${d.type}</span><span class="text-[11px] text-slate-400 flex items-center gap-1"><i data-lucide="star" class="w-3 h-3 text-amber-400 fill-amber-400"></i>${d.rating} (${d.reviews.toLocaleString()} reviews)</span></div>
+    <h2 class="text-xl font-bold mb-2">${d.name}, ${d.country}</h2>
+    <p class="text-sm text-slate-400 leading-relaxed mb-6">${d.desc}</p>
+    ${pkgs.length > 0 ? `<h3 class="text-sm font-semibold mb-3">Available Packages</h3><div class="space-y-3">${pkgs.map(p => `
+      <div class="glass-sm p-4 flex items-center justify-between cursor-pointer hover:border-cyan-500/20 transition-colors" onclick="closeModal();setTimeout(()=>location.hash='#/package/${p.id}',200)">
+        <div><div class="text-sm font-medium">${p.name}</div><div class="text-[11px] text-slate-500">${p.duration.n}N/${p.duration.d}D · ${stars(p.rating)}</div></div>
+        <div class="text-right"><div class="text-[11px] text-slate-500 line-through">${fmt(p.orig)}</div><div class="text-sm font-bold text-cyan-400">${fmt(p.price)}</div></div>
+      </div>
+    `).join('')}</div>` : '<p class="text-sm text-slate-500">No packages available yet for this destination.</p>'}
+  `;
+  openModal(html);
+}
+
+// ============================
+// PACKAGE DETAIL PAGE
+// ============================
+function renderPackagePage(pkgId) {
+  const p = PACKAGES.find(x => x.id === pkgId);
+  if (!p) { document.getElementById('package-detail-content').innerHTML = '<div class="text-center py-20"><p class="text-slate-500">Package not found.</p><button class="btn-primary px-6 py-2.5 text-sm mt-4" onclick="navigate(\'destinations\')">Browse Packages</button></div>'; return; }
+  const d = DESTINATIONS.find(x => x.id === p.destId);
+  const inCart = Store.get('cart').find(c => c.pkgId === p.id);
+  const discount = Math.round((1 - p.price / p.orig) * 100);
+
+  document.getElementById('package-detail-content').innerHTML = `
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-2 text-[11px] text-slate-500 mb-6">
+      <a href="#/" class="hover:text-cyan-400 transition-colors" onclick="navigate('home')">Home</a><i data-lucide="chevron-right" class="w-3 h-3"></i>
+      <a href="#/destinations" class="hover:text-cyan-400 transition-colors" onclick="navigate('destinations')">Destinations</a><i data-lucide="chevron-right" class="w-3 h-3"></i>
+      <span class="text-slate-300">${p.name}</span>
+    </div>
+
+    <!-- Gallery -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-8">
+      <div class="md:col-span-2 md:row-span-2 relative rounded-2xl overflow-hidden h-64 md:h-full img-zoom"><img src="https://picsum.photos/seed/${p.images[0]}/800/600.jpg" class="w-full h-full object-cover" alt="${p.name}"><span class="absolute top-3 left-3 tag ${p.tagClass}">${p.tag}</span></div>
+      ${p.images.slice(1,4).map((img,i) => `<div class="relative rounded-xl overflow-hidden h-32 md:h-auto img-zoom"><img src="https://picsum.photos/seed/${img}/400/300.jpg" class="w-full h-full object-cover" alt="${p.name} ${i+2}" loading="lazy"></div>`).join('')}
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+      <!-- Left Content -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Header -->
+        <div>
+          <div class="flex items-center gap-2 mb-2"><span class="tag tag-cyan">${d?d.type:''}</span><span class="text-[11px] text-slate-400">${p.duration.n}N / ${p.duration.d}D</span><span class="text-[11px] text-slate-400 flex items-center gap-1">${stars(p.rating)} <span class="ml-1">(${p.reviews})</span></span></div>
+          <h1 class="text-2xl md:text-3xl font-bold tracking-tight mb-2">${p.name}</h1>
+          <p class="text-sm text-slate-400">${d?d.name+', '+d.country:''}</p>
+        </div>
+
+        <!-- Itinerary -->
+        <div>
+          <h2 class="text-lg font-semibold mb-5 flex items-center gap-2"><i data-lucide="route" class="w-5 h-5 text-cyan-400"></i>Day-by-Day Itinerary</h2>
+          <div class="space-y-1">
+            ${p.itinerary.map(day => `
+              <div class="itin-item pb-5">
+                <div class="itin-dot"><div class="itin-dot-inner"></div></div>
+                <div class="glass-sm p-4">
+                  <div class="flex items-center justify-between mb-1">
+                    <h4 class="text-sm font-semibold">Day ${day.day}: ${day.title}</h4>
+                    <span class="text-[10px] text-cyan-400 font-medium">${day.meals}</span>
+                  </div>
+                  <p class="text-xs text-slate-400 leading-relaxed">${day.desc}</p>
+                  ${day.hotel !== '—' ? `<div class="mt-2 flex items-center gap-1.5 text-[11px] text-slate-500"><i data-lucide="bed-double" class="w-3 h-3"></i>${day.hotel}</div>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Inclusions/Exclusions -->
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="glass-sm p-5">
+            <h3 class="text-sm font-semibold mb-3 flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>Inclusions</h3>
+            <ul class="space-y-2">${p.inclusions.map(i => `<li class="text-xs text-slate-400 flex items-start gap-2"><i data-lucide="check" class="w-3 h-3 text-emerald-400 shrink-0 mt-0.5"></i>${i}</li>`).join('')}</ul>
+          </div>
+          <div class="glass-sm p-5">
+            <h3 class="text-sm font-semibold mb-3 flex items-center gap-2"><i data-lucide="x-circle" class="w-4 h-4 text-rose-400"></i>Exclusions</h3>
+            <ul class="space-y-2">${p.exclusions.map(i => `<li class="text-xs text-slate-400 flex items-start gap-2"><i data-lucide="x" class="w-3 h-3 text-rose-400 shrink-0 mt-0.5"></i>${i}</li>`).join('')}</ul>
+          </div>
+        </div>
+
+        <!-- Reviews -->
+        <div>
+          <h2 class="text-lg font-semibold mb-4 flex items-center gap-2"><i data-lucide="message-circle" class="w-5 h-5 text-cyan-400"></i>Reviews</h2>
+          <div class="space-y-3">
+            ${p.pkgReviews.map(r => `
+              <div class="glass-sm p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500/20 to-violet-500/20 flex items-center justify-center text-xs font-bold text-cyan-300">${r.name.charAt(0)}</div><div><div class="text-sm font-medium">${r.name}</div><div class="text-[10px] text-slate-500">${r.date}</div></div></div>
+                  <div class="flex gap-0.5">${stars(r.rating)}</div>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">"${r.text}"</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="lg:col-span-1">
+        <div class="glass-heavy p-6 sticky top-24">
+          <div class="flex items-center gap-2 mb-1"><span class="text-xs text-slate-500 line-through">${fmt(p.orig)}</span><span class="tag tag-emerald text-[9px]">${discount}% OFF</span></div>
+          <div class="text-3xl font-extrabold text-cyan-400 mb-1">${fmt(p.price)}</div>
+          <div class="text-[11px] text-slate-500 mb-6">per person</div>
+
+          <div class="space-y-3 mb-6">
+            <div class="flex items-center justify-between text-sm"><span class="text-slate-400">Duration</span><span>${p.duration.n} Nights / ${p.duration.d} Days</span></div>
+            <div class="flex items-center justify-between text-sm"><span class="text-slate-400">Destination</span><span>${d?d.name:''}</span></div>
+            <div class="flex items-center justify-between text-sm"><span class="text-slate-400">Availability</span><span class="text-emerald-400">In Stock</span></div>
+          </div>
+
+          ${inCart ? `
+            <button class="w-full btn-secondary py-3 text-sm mb-3 flex items-center justify-center gap-2" onclick="Store.removeFromCart('${p.id}');renderPackagePage('${p.id}');showToast('Removed from cart','info')">
+              <i data-lucide="shopping-cart" class="w-4 h-4"></i>Remove from Cart
+            </button>
+            <button class="w-full btn-primary py-3 text-sm" onclick="location.hash='#/checkout'">Proceed to Checkout</button>
+          ` : `
+            <button class="w-full btn-primary py-3 text-sm mb-3 flex items-center justify-center gap-2" onclick="addToCartDirect('${p.id}')">
+              <i data-lucide="shopping-cart" class="w-4 h-4"></i>Add to Cart
+            </button>
+            <button class="w-full btn-secondary py-3 text-sm" onclick="addToCartDirect('${p.id}');location.hash='#/checkout'">Book Now</button>
+          `}
+
+          <div class="mt-6 pt-5 border-t border-white/[0.04] space-y-3">
+            <div class="flex items-center gap-2 text-[11px] text-slate-500"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-cyan-400"></i>Best price guarantee</div>
+            <div class="flex items-center gap-2 text-[11px] text-slate-500"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cyan-400"></i>Free cancellation up to 48hrs</div>
+            <div class="flex items-center gap-2 text-[11px] text-slate-500"><i data-lucide="headphones" class="w-3.5 h-3.5 text-cyan-400"></i>24/7 trip support</div>
+            <div class="flex items-center gap-2 text-[11px] text-slate-500"><i data-lucide="credit-card" class="w-3.5 h-3.5 text-cyan-400"></i>EMI options available</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  lucide.createIcons({nodes:document.getElementById('package-detail-content')});
+}
+
+function addToCartDirect(pkgId) {
+  Store.addToCart(pkgId, Store.get('homeAdults') || 2, Store.get('homeChildren') || 0);
+  const pkg = PACKAGES.find(p => p.id === pkgId);
+  showToast(`${pkg?pkg.name:'Package'} added to cart!`, 'success');
+  // Re-render if on package page
+  if (Store.get('currentPage') === 'package') renderPackagePage(pkgId);
+}
+
+// ============================
+// MY TRIPS PAGE
+// ============================
+function filterTrips(filter, btn) {
+  document.querySelectorAll('.trip-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderTripsPage(filter);
+}
+
+function renderTripsPage(filter = 'all') {
+  let trips = Store.get('trips');
+  if (filter !== 'all') trips = trips.filter(t => t.status === filter);
+  const list = document.getElementById('trips-list');
+  const empty = document.getElementById('trips-empty');
+
+  if (trips.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  list.innerHTML = trips.map(t => {
+    const pkg = PACKAGES.find(p => p.id === t.pkgId);
+    const dest = pkg ? DESTINATIONS.find(d => d.id === pkg.destId) : null;
+    const statusClass = 'status-' + t.status;
+    const statusLabel = t.status.charAt(0).toUpperCase() + t.status.slice(1);
+    const canCancel = t.status === 'upcoming' || t.status === 'ongoing';
+
+    return `
+    <div class="glass-md p-5 card-lift">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="w-full md:w-40 h-28 rounded-xl overflow-hidden shrink-0 img-zoom">
+          <img src="https://picsum.photos/seed/${pkg?pkg.images[0]:'travel-default'}/400/300.jpg" class="w-full h-full object-cover" alt="">
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <span class="tag ${statusClass} text-[9px]">${statusLabel}</span>
+            <span class="text-[10px] text-slate-500">Ref: ${t.ref}</span>
+          </div>
+          <h3 class="text-base font-semibold mb-1">${pkg?pkg.name:'Unknown Package'}</h3>
+          <div class="flex flex-wrap gap-3 text-[11px] text-slate-400 mb-3">
+            <span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i>${dest?dest.name:'—'}</span>
+            <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${t.travelDate}</span>
+            <span class="flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i>${t.travellers} traveller${t.travellers>1?'s':''}</span>
+            <span class="flex items-center gap-1"><i data-lucide="calendar-check" class="w-3 h-3"></i>Booked ${t.bookedOn}</span>
+          </div>
+          ${t.cancelReason ? `<div class="text-[11px] text-rose-400 mb-2">Reason: ${t.cancelReason}</div>` : ''}
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="text-lg font-bold ${t.totalPaid > 0 ? 'text-cyan-400' : 'text-slate-500'}">${t.totalPaid > 0 ? fmt(t.totalPaid) : '—'}</span>
+            ${pkg ? `<button class="btn-ghost px-3 py-1.5 text-xs" onclick="location.hash='#/package/${pkg.id}'">View Package</button>` : ''}
+            ${canCancel ? `<button class="btn-ghost px-3 py-1.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10" onclick="confirmCancelTrip('${t.id}')">Cancel Trip</button>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  lucide.createIcons({nodes:list});
+}
+
+function confirmCancelTrip(tripId) {
+  const trip = Store.get('trips').find(t => t.id === tripId);
+  const pkg = PACKAGES.find(p => p.id === trip?.pkgId);
+  openModal(`
+    <div class="text-center mb-6"><div class="w-14 h-14 mx-auto rounded-full bg-rose-500/10 flex items-center justify-center mb-4"><i data-lucide="alert-triangle" class="w-7 h-7 text-rose-400"></i></div><h3 class="text-lg font-semibold mb-1">Cancel Trip?</h3><p class="text-sm text-slate-400">Are you sure you want to cancel <strong class="text-white">${pkg?pkg.name:''}</strong>? This action cannot be undone.</p></div>
+    <div class="flex gap-3"><button class="flex-1 btn-secondary py-2.5 text-sm" onclick="closeModal()">Keep Trip</button><button class="flex-1 py-2.5 text-sm font-medium bg-rose-500/20 text-rose-400 rounded-xl hover:bg-rose-500/30 transition-colors" onclick="doCancelTrip('${tripId}')">Yes, Cancel</button></div>
+  `);
+}
+
+function doCancelTrip(tripId) {
+  closeModal();
+  if (Store.cancelTrip(tripId)) { showToast('Trip cancelled successfully', 'info'); renderTripsPage(); }
+  else showToast('Could not cancel this trip', 'error');
+}
+
+// ============================
+// CHECKOUT PAGE
+// ============================
+function renderCheckoutPage() {
+  const el = document.getElementById('checkout-content');
+  const cart = Store.get('cart');
+  const step = Store.get('checkoutStep');
+
+  if (cart.length === 0 && step < 3) {
+    el.innerHTML = `
+      <div class="text-center py-20">
+        <div class="w-20 h-20 mx-auto rounded-2xl glass-md flex items-center justify-center mb-6"><i data-lucide="shopping-cart" class="w-10 h-10 text-slate-600"></i></div>
+        <h2 class="text-xl font-semibold mb-2">Your cart is empty</h2>
+        <p class="text-sm text-slate-400 mb-6">Browse destinations and add packages to get started.</p>
+        <button class="btn-primary px-8 py-3 text-sm" onclick="navigate('destinations')">Explore Destinations</button>
+      </div>`;
+    lucide.createIcons({nodes:el}); return;
+  }
+
+  // Step indicator
+  const steps = ['Review', 'Details', 'Payment', 'Confirmed'];
+  const stepHTML = `<div class="flex items-center gap-0 mb-10 max-w-lg mx-auto">${steps.map((s,i) => `
+    ${i > 0 ? `<div class="step-line ${i <= step ? 'filled' : ''}"><div class="fill"></div></div>` : ''}
+    <div class="flex flex-col items-center gap-1.5"><div class="step-dot ${i < step ? 'done' : i === step ? 'active' : 'pending'}">${i < step ? '<i data-lucide="check" class="w-4 h-4"></i>' : (i+1)}</div><span class="text-[10px] ${i <= step ? 'text-slate-300' : 'text-slate-600'}">${s}</span></div>
+  `).join('')}</div>`;
+
+  let content = '';
+  if (step === 0) content = renderCheckoutStep0(cart);
+  else if (step === 1) content = renderCheckoutStep1();
+  else if (step === 2) content = renderCheckoutStep2(cart);
+  else if (step === 3) content = renderCheckoutStep3();
+
+  el.innerHTML = stepHTML + `<div class="grid lg:grid-cols-3 gap-8">${content}<div class="lg:col-span-1">${renderCheckoutSidebar(cart)}</div></div>`;
+  lucide.createIcons({nodes:el});
+}
+
+function renderCheckoutStep0(cart) {
+  return `<div class="lg:col-span-2 space-y-4">
+    <h2 class="text-lg font-semibold mb-4">Review Your Selection</h2>
+    ${cart.map(item => {
+      const p = PACKAGES.find(x => x.id === item.pkgId); if (!p) return '';
+      const d = DESTINATIONS.find(x => x.id === p.destId);
+      return `
+      <div class="glass-md p-4 flex gap-4">
+        <div class="w-24 h-24 rounded-xl overflow-hidden shrink-0"><img src="https://picsum.photos/seed/${p.images[0]}/200/200.jpg" class="w-full h-full object-cover"></div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-sm font-semibold mb-0.5">${p.name}</h3>
+          <p class="text-[11px] text-slate-500 mb-2">${d?d.name+', '+d.country:''} · ${p.duration.n}N/${p.duration.d}D</p>
+          <div class="flex items-center gap-4 text-[11px] text-slate-400">
+            <span>${item.adults} Adult${item.adults>1?'s':''}</span>
+            ${item.children > 0 ? `<span>${item.children} Child${item.children>1?'ren':''}</span>` : ''}
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-sm font-bold text-cyan-400">${fmt(p.price * item.adults + Math.floor(p.price * 0.6) * item.children)}</div>
+          <button class="text-[10px] text-rose-400 hover:text-rose-300 mt-1" onclick="Store.removeFromCart('${p.id}');renderCheckoutPage()">Remove</button>
+        </div>
+      </div>`;
+    }).join('')}
+    <div class="flex justify-end pt-4"><button class="btn-primary px-8 py-3 text-sm" onclick="Store.set('checkoutStep',1);renderCheckoutPage()">Continue to Details</button></div>
+  </div>`;
+}
+
+function renderCheckoutStep1() {
+  const f = Store.get('checkoutForm');
+  const u = Store.get('user');
+  // Pre-fill from profile
+  if (!f.firstName && u.name) { const parts = u.name.split(' '); f.firstName = parts[0]||''; f.lastName = parts.slice(1).join(' ')||''; f.email = u.email; f.phone = u.phone; f.dob = u.dob; f.gender = u.gender; f.passport = u.passport; f.address = u.address; Store.set('checkoutForm', f); }
+  return `<div class="lg:col-span-2">
+    <h2 class="text-lg font-semibold mb-6">Traveller Details</h2>
+    <form id="checkout-form" onsubmit="event.preventDefault();validateAndProceed()" class="space-y-4">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div><label class="text-[11px] text-slate-400 mb-1 block">First Name *</label><input type="text" name="firstName" value="${f.firstName}" class="w-full px-4 py-2.5 glass-input text-sm" required></div>
+        <div><label class="text-[11px] text-slate-400 mb-1 block">Last Name *</label><input type="text" name="lastName" value="${f.lastName}" class="w-full px-4 py-2.5 glass-input text-sm" required></div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div><label class="text-[11px] text-slate-400 mb-1 block">Email *</label><input type="email" name="email" value="${f.email}" class="w-full px-4 py-2.5 glass-input text-sm" required></div>
+        <div><label class="text-[11px] text-slate-400 mb-1 block">Phone *</label><input type="tel" name="phone" value="${f.phone}" class="w-full px-4 py-2.5 glass-input text-sm" required></div>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div><label class="text-[11px] text-slate-400 mb-1 block">Date of Birth</label><input type="date" name="dob" value="${f.dob}" class="w-full px-4 py-2.5 glass-input text-sm"></div>
+        <div><label class="text-[11px] text-slate-400 mb-1 block">Gender</label><select name="gender" class="w-full px-4 py-2.5 glass-input text-sm text-slate-300"><option value="">Select</option><option ${f.gender==='Male'?'selected':''}>Male</option><option ${f.gender==='Female'?'selected':''}>Female</option><option ${f.gender==='Other'?'selected':''}>Other</option></select></div>
+        <div><label class="text-[11px] text-slate-400 mb-1 block">Passport No.</label><input type="text" name="passport" value="${f.passport}" class="w-full px-4 py-2.5 glass-input text-sm"></div>
+      </div>
+      <div><label class="text-[11px] text-slate-400 mb-1 block">Address</label><textarea name="address" rows="2" class="w-full px-4 py-2.5 glass-input text-sm resize-none">${f.address}</textarea></div>
+      <div><label class="text-[11px] text-slate-400 mb-1 block">Special Requests</label><textarea name="specialReqs" rows="2" placeholder="Dietary needs, accessibility, celebrations..." class="w-full px-4 py-2.5 glass-input text-sm resize-none placeholder:text-slate-600">${f.specialReqs}</textarea></div>
+      <div id="form-errors" class="hidden text-[11px] text-rose-400"></div>
+      <div class="flex justify-between pt-4"><button type="button" class="btn-secondary px-6 py-2.5 text-sm" onclick="Store.set('checkoutStep',0);renderCheckoutPage()">Back</button><button type="submit" class="btn-primary px-8 py-2.5 text-sm">Continue to Payment</button></div>
+    </form>
+  </div>`;
+}
+
+function validateAndProceed() {
+  const form = document.getElementById('checkout-form');
+  const fd = new FormData(form);
+  const obj = Object.fromEntries(fd.entries());
+  const errors = [];
+  if (!obj.firstName?.trim()) errors.push('First name is required');
+  if (!obj.lastName?.trim()) errors.push('Last name is required');
+  if (!obj.email?.trim() || !obj.email.includes('@')) errors.push('Valid email is required');
+  if (!obj.phone?.trim() || obj.phone.length < 10) errors.push('Valid phone number is required');
+
+  if (errors.length > 0) {
+    const errEl = document.getElementById('form-errors');
+    errEl.innerHTML = errors.map(e => `<div class="flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i>${e}</div>`).join('');
+    errEl.classList.remove('hidden');
+    lucide.createIcons({nodes:errEl});
+    return;
+  }
+  Store.set('checkoutForm', obj);
+  Store.set('checkoutStep', 2);
+  renderCheckoutPage();
+}
+
+function renderCheckoutStep2(cart) {
+  return `<div class="lg:col-span-2">
+    <h2 class="text-lg font-semibold mb-6">Payment Method</h2>
+    <div class="space-y-3 mb-6">
+      <label class="glass-md p-4 flex items-center gap-4 cursor-pointer hover:border-cyan-500/20 transition-colors">
+        <input type="radio" name="payment" value="card" checked class="accent-cyan-500">
+        <i data-lucide="credit-card" class="w-5 h-5 text-cyan-400"></i>
+        <div><div class="text-sm font-medium">Credit / Debit Card</div><div class="text-[10px] text-slate-500">Visa, Mastercard, RuPay</div></div>
+      </label>
+      <label class="glass-md p-4 flex items-center gap-4 cursor-pointer hover:border-cyan-500/20 transition-colors">
+        <input type="radio" name="payment" value="upi" class="accent-cyan-500">
+        <i data-lucide="smartphone" class="w-5 h-5 text-violet-400"></i>
+        <div><div class="text-sm font-medium">UPI</div><div class="text-[10px] text-slate-500">GPay, PhonePe, Paytm</div></div>
+      </label>
+      <label class="glass-md p-4 flex items-center gap-4 cursor-pointer hover:border-cyan-500/20 transition-colors">
+        <input type="radio" name="payment" value="emi" class="accent-cyan-500">
+        <i data-lucide="calendar-clock" class="w-5 h-5 text-amber-400"></i>
+        <div><div class="text-sm font-medium">EMI</div><div class="text-[10px] text-slate-500">3, 6, 9, 12 months — No cost EMI available</div></div>
+      </label>
+      <label class="glass-md p-4 flex items-center gap-4 cursor-pointer hover:border-cyan-500/20 transition-colors">
+        <input type="radio" name="payment" value="netbanking" class="accent-cyan-500">
+        <i data-lucide="landmark" class="w-5 h-5 text-emerald-400"></i>
+        <div><div class="text-sm font-medium">Net Banking</div><div class="text-[10px] text-slate-500">All major banks supported</div></div>
+      </label>
+    </div>
+    <div class="glass-sm p-4 mb-6">
+      <div class="flex items-start gap-3"><input type="checkbox" id="tnc" class="accent-cyan-500 mt-0.5"><label for="tnc" class="text-xs text-slate-400 leading-relaxed">I agree to the <a href="#" class="text-cyan-400 hover:underline">Terms of Service</a>, <a href="#" class="text-cyan-400 hover:underline">Cancellation Policy</a>, and <a href="#" class="text-cyan-400 hover:underline">Privacy Policy</a>. I understand that this is a simulated booking for demonstration purposes.</label></div>
+    </div>
+    <div class="flex justify-between pt-2">
+      <button class="btn-secondary px-6 py-2.5 text-sm" onclick="Store.set('checkoutStep',1);renderCheckoutPage()">Back</button>
+      <button class="btn-primary px-8 py-2.5 text-sm" onclick="completePayment()">Pay ${fmt(Store.getCartTotal())}</button>
+    </div>
+  </div>`;
+}
+
+function completePayment() {
+  const tnc = document.getElementById('tnc');
+  if (!tnc?.checked) { showToast('Please agree to the terms to continue', 'error'); return; }
+  // Simulate payment processing
+  showToast('Processing payment...', 'info');
+  setTimeout(() => {
+    const ref = Store.completeBooking();
+    if (ref) { Store.set('checkoutStep', 3); renderCheckoutPage(); }
+    else showToast('Payment failed. Please try again.', 'error');
+  }, 1500);
+}
+
+function renderCheckoutStep3() {
+  return `<div class="lg:col-span-2 text-center py-10">
+    <div class="w-20 h-20 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center mb-6 animate-pulse-glow" style="--tw-shadow-color:rgba(16,185,129,0.15)"><i data-lucide="check-circle" class="w-10 h-10 text-emerald-400"></i></div>
+    <h2 class="text-2xl font-bold mb-2">Booking Confirmed!</h2>
+    <p class="text-sm text-slate-400 mb-2">Your trip has been booked successfully.</p>
+    <p class="text-xs text-slate-500 mb-8">Confirmation details have been sent to your email. You can also view your trips in the My Trips section.</p>
+    <div class="flex items-center justify-center gap-4">
+      <button class="btn-primary px-6 py-2.5 text-sm" onclick="navigate('trips')">View My Trips</button>
+      <button class="btn-secondary px-6 py-2.5 text-sm" onclick="navigate('home')">Back to Home</button>
+    </div>
+  </div>`;
+}
+
+function renderCheckoutSidebar(cart) {
+  const total = Store.getCartTotal();
+  const serviceFee = Math.round(total * 0.02);
+  const discount = cart.reduce((s, item) => {
+    const p = PACKAGES.find(x => x.id === item.pkgId);
+    return s + (p ? (p.orig - p.price) * item.adults : 0);
+  }, 0);
+  const tax = Math.round(total * 0.05);
+  const grandTotal = total + serviceFee + tax;
+
+  if (Store.get('checkoutStep') >= 3) {
+    return `<div class="glass-heavy p-6 sticky top-24"><h3 class="text-sm font-semibold mb-4">Payment Summary</h3><div class="text-center py-4"><div class="text-2xl font-bold text-emerald-400">Paid</div><div class="text-lg font-bold mt-1">${fmt(grandTotal)}</div></div></div>`;
+  }
+
+  return `<div class="glass-heavy p-6 sticky top-24">
+    <h3 class="text-sm font-semibold mb-4">Price Summary</h3>
+    <div class="space-y-3 text-sm">
+      <div class="flex justify-between"><span class="text-slate-400">Package Total</span><span>${fmt(total)}</span></div>
+      ${discount > 0 ? `<div class="flex justify-between"><span class="text-slate-400">Discount</span><span class="text-emerald-400">-${fmt(discount)}</span></div>` : ''}
+      <div class="flex justify-between"><span class="text-slate-400">Service Fee (2%)</span><span>${fmt(serviceFee)}</span></div>
+      <div class="flex justify-between"><span class="text-slate-400">Taxes (GST 5%)</span><span>${fmt(tax)}</span></div>
+      <div class="border-t border-white/[0.04] pt-3 flex justify-between"><span class="font-semibold">Grand Total</span><span class="text-xl font-bold text-cyan-400">${fmt(grandTotal)}</span></div>
+    </div>
+    ${total > 10000 ? `<div class="mt-4 glass-sm p-3 text-center"><div class="text-[10px] text-slate-500 mb-1">No-cost EMI available</div><div class="text-xs text-slate-300">${fmt(Math.round(grandTotal / 6))}/month × 6 months</div></div>` : ''}
+  </div>`;
+}
+
+// ============================
+// PROFILE PAGE
+// ============================
+function renderProfilePage() {
+  const u = Store.get('user');
+  const el = document.getElementById('profile-content');
+  const savedDests = DESTINATIONS.filter(d => u.prefDestinations.includes(d.id));
+
+  el.innerHTML = `
+  <!-- Profile Header -->
+  <div class="glass-heavy p-6 mb-6 flex flex-col sm:flex-row items-center sm:items-start gap-5">
+    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 flex items-center justify-center text-2xl font-bold text-cyan-300 shrink-0">${u.name.charAt(0)}</div>
+    <div class="text-center sm:text-left flex-1">
+      <h2 class="text-xl font-bold">${u.name}</h2>
+      <p class="text-sm text-slate-400">${u.email}</p>
+      <div class="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
+        <span class="tag tag-cyan">${u.prefBudget.charAt(0).toUpperCase()+u.prefBudget.slice(1)} Traveller</span>
+        <span class="tag tag-violet">${u.prefType.charAt(0).toUpperCase()+u.prefType.slice(1)} Lover</span>
+      </div>
+    </div>
+    <button class="btn-secondary px-4 py-2 text-sm" onclick="toggleProfileEdit()"><i data-lucide="pencil" class="w-4 h-4 mr-1.5"></i>Edit</button>
+  </div>
+
+  <!-- Edit Form (hidden by default) -->
+  <div id="profile-edit" class="hidden glass-md p-6 mb-6">
+    <h3 class="text-base font-semibold mb-4">Edit Profile</h3>
+    <form onsubmit="event.preventDefault();saveProfile()" class="grid sm:grid-cols-2 gap-4">
+      <div><label class="text-[11px] text-slate-400 mb-1 block">Full Name</label><input type="text" id="pf-name" value="${u.name}" class="w-full px-4 py-2.5 glass-input text-sm"></div>
+      <div><label class="text-[11px] text-slate-400 mb-1 block">Email</label><input type="email" id="pf-email" value="${u.email}" class="w-full px-4 py-2.5 glass-input text-sm"></div>
+      <div><label class="text-[11px] text-slate-400 mb-1 block">Phone</label><input type="tel" id="pf-phone" value="${u.phone}" class="w-full px-4 py-2.5 glass-input text-sm"></div>
+      <div><label class="text-[11px] text-slate-400 mb-1 block">Date of Birth</label><input type="date" id="pf-dob" value="${u.dob}" class="w-full px-4 py-2.5 glass-input text-sm"></div>
+      <div><label class="text-[11px] text-slate-400 mb-1 block">Passport Number</label><input type="text" id="pf-passport" value="${u.passport}" class="w-full px-4 py-2.5 glass-input text-sm"></div>
+      <div><label class="text-[11px] text-slate-400 mb-1 block">Nationality</label><input type="text" id="pf-nationality" value="${u.nationality}" class="w-full px-4 py-2.5 glass-input text-sm"></div>
+      <div class="sm:col-span-2"><label class="text-[11px] text-slate-400 mb-1 block">Address</label><textarea id="pf-address" rows="2" class="w-full px-4 py-2.5 glass-input text-sm resize-none">${u.address}</textarea></div>
+      <div class="sm:col-span-2 flex gap-3"><button type="submit" class="btn-primary px-6 py-2.5 text-sm">Save Changes</button><button type="button" class="btn-secondary px-6 py-2.5 text-sm" onclick="toggleProfileEdit()">Cancel</button></div>
+    </form>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <!-- Saved Destinations -->
+    <div class="glass-md p-6">
+      <h3 class="text-sm font-semibold mb-4 flex items-center gap-2"><i data-lucide="heart" class="w-4 h-4 text-rose-400"></i>Saved Destinations</h3>
+      ${savedDests.length > 0 ? `<div class="space-y-3">${savedDests.map(d => `
+        <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors cursor-pointer" onclick="location.hash='#/destinations'">
+          <img src="https://picsum.photos/seed/${d.image}/100/100.jpg" class="w-10 h-10 rounded-lg object-cover">
+          <div class="flex-1 min-w-0"><div class="text-sm font-medium">${d.name}</div><div class="text-[10px] text-slate-500">${d.country}</div></div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600"></i>
+        </div>
+      `).join('')}</div>` : '<p class="text-sm text-slate-500">No saved destinations yet.</p>'}
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="glass-md p-6">
+      <h3 class="text-sm font-semibold mb-4 flex items-center gap-2"><i data-lucide="bell" class="w-4 h-4 text-amber-400"></i>Notifications</h3>
+      <div class="space-y-4">
+        ${[['email','Email Notifications','Trip updates and confirmations'],['sms','SMS Alerts','Critical trip alerts on phone'],['whatsapp','WhatsApp Messages','Chat-based trip support'],['promos','Promotional Offers','Deals and discounts']].map(([key,label,desc]) => `
+        <div class="flex items-center justify-between">
+          <div><div class="text-sm">${label}</div><div class="text-[10px] text-slate-500">${desc}</div></div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" class="sr-only peer" ${u.notifications[key]?'checked':''} onchange="toggleNotif('${key}',this.checked)">
+            <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:bg-cyan-500/30 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:bg-cyan-400"></div>
+          </label>
+        </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="glass-md p-6">
+      <h3 class="text-sm font-semibold mb-4 flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-4 h-4 text-cyan-400"></i>Travel Stats</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="glass-sm p-3 text-center"><div class="text-xl font-bold text-cyan-400">${Store.get('trips').filter(t=>t.status==='completed').length}</div><div class="text-[10px] text-slate-500">Trips Taken</div></div>
+        <div class="glass-sm p-3 text-center"><div class="text-xl font-bold text-violet-400">${Store.get('trips').filter(t=>t.status==='upcoming').length}</div><div class="text-[10px] text-slate-500">Upcoming</div></div>
+        <div class="glass-sm p-3 text-center"><div class="text-xl font-bold text-emerald-400">${savedDests.length}</div><div class="text-[10px] text-slate-500">Saved Places</div></div>
+        <div class="glass-sm p-3 text-center"><div class="text-xl font-bold text-amber-400">${Store.get('trips').reduce((s,t)=>s+t.travellers,0)}</div><div class="text-[10px] text-slate-500">Travel Companions</div></div>
+      </div>
+    </div>
+
+    <!-- Travel Preferences -->
+    <div class="glass-md p-6">
+      <h3 class="text-sm font-semibold mb-4 flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>Preferences</h3>
+      <div class="space-y-4">
+        <div><label class="text-[11px] text-slate-400 mb-1 block">Preferred Trip Type</label>
+          <select class="w-full px-4 py-2.5 glass-input text-sm text-slate-300" onchange="updatePref('prefType',this.value)">
+            <option ${u.prefType==='beach'?'selected':''}>beach</option><option ${u.prefType==='mountain'?'selected':''}>mountain</option><option ${u.prefType==='city'?'selected':''}>city</option><option ${u.prefType==='adventure'?'selected':''}>adventure</option><option ${u.prefType==='heritage'?'selected':''}>heritage</option>
+          </select>
+        </div>
+        <div><label class="text-[11px] text-slate-400 mb-1 block">Budget Range</label>
+          <select class="w-full px-4 py-2.5 glass-input text-sm text-slate-300" onchange="updatePref('prefBudget',this.value)">
+            <option ${u.prefBudget==='budget'?'selected':''}>budget</option><option ${u.prefBudget==='standard'?'selected':''}>standard</option><option ${u.prefBudget==='premium'?'selected':''}>premium</option><option ${u.prefBudget==='luxury'?'selected':''}>luxury</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+  lucide.createIcons({nodes:el});
+}
+
+function toggleProfileEdit() { document.getElementById('profile-edit').classList.toggle('hidden'); }
+
+function saveProfile() {
+  const u = Store.get('user');
+  u.name = document.getElementById('pf-name').value;
+  u.email = document.getElementById('pf-email').value;
+  u.phone = document.getElementById('pf-phone').value;
+  u.dob = document.getElementById('pf-dob').value;
+  u.passport = document.getElementById('pf-passport').value;
+  u.nationality = document.getElementById('pf-nationality').value;
+  u.address = document.getElementById('pf-address').value;
+  Store.set('user', u);
+  toggleProfileEdit();
+  renderProfilePage();
+  showToast('Profile updated successfully!', 'success');
+}
+
+function toggleNotif(key, val) {
+  const u = Store.get('user');
+  u.notifications[key] = val;
+  Store.set('user', u);
+  showToast(`${key.charAt(0).toUpperCase()+key.slice(1)} notifications ${val?'enabled':'disabled'}`, 'info');
+}
+
+function updatePref(key, val) {
+  const u = Store.get('user');
+  u[key] = val;
+  Store.set('user', u);
+  showToast('Preference updated', 'success');
+}
+
+// ============================
+// HOME SEARCH LOGIC
+// ============================
+function handleHomeSearch() {
+  const dest = document.getElementById('home-dest-label').textContent;
+  if (dest === 'Select destination') { showToast('Please select a destination', 'error'); return; }
+  navigate('destinations');
+  // Pre-fill search
+  setTimeout(() => {
+    const input = document.getElementById('dest-search-input');
+    if (input) { input.value = dest.split(',')[0]; filterDestinations(); }
+  }, 100);
+}
+
+// ============================
+// DROPDOWN LOGIC
+// ============================
+// Home destination dropdown
+const homeDestNames = DESTINATIONS.map(d => d.name + ', ' + d.country);
+document.getElementById('home-dest-trigger').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const dd = document.getElementById('home-dest-dd');
+  dd.classList.toggle('open');
+  if (dd.classList.contains('open')) { renderHomeDestList(''); setTimeout(() => document.getElementById('home-dest-search').focus(), 50); }
+});
+
+function renderHomeDestList(q) {
+  const list = document.getElementById('home-dest-list');
+  const filtered = homeDestNames.filter(d => d.toLowerCase().includes(q.toLowerCase()));
+  list.innerHTML = filtered.length > 0 ? filtered.map(d => `<button class="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors" onclick="document.getElementById('home-dest-label').textContent='${d}';document.getElementById('home-dest-dd').classList.remove('open');Store.set('homeDest','${d}')"><i data-lucide="map-pin" class="w-3 h-3 inline mr-2 text-slate-500"></i>${d}</button>`).join('') : '<div class="px-3 py-3 text-sm text-slate-500 text-center">No results</div>';
+  lucide.createIcons({nodes:list});
+}
+
+document.getElementById('home-dest-search').addEventListener('input', (e) => renderHomeDestList(e.target.value));
+document.getElementById('home-dest-search').addEventListener('click', e => e.stopPropagation());
+
+// Traveller dropdown
+document.getElementById('home-trav-trigger').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('home-trav-dd').classList.toggle('open');
+});
+
+// Close all dropdowns on outside click
+document.addEventListener('click', () => {
+  document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+});
+
+// Search tabs
+document.querySelectorAll('.search-tab').forEach(tab => {
+  tab.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    Store.set('searchType', tab.dataset.type);
+  });
+});
+
+// ============================
+// THEME
+// ============================
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  try { localStorage.setItem('pickurship-theme', next); } catch(e) {}
+}
+function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem('pickurship-theme'); } catch(e) {}
+  const preferred = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.documentElement.setAttribute('data-theme', preferred);
+}
+
+// ============================
+// NAVBAR SCROLL
+// ============================
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('navbar');
+  if (window.scrollY > 30) nav.classList.add('glass-nav');
+  else nav.classList.remove('glass-nav');
+  const btt = document.getElementById('btt');
+  if (window.scrollY > 500) { btt.style.opacity='1'; btt.style.transform='translateY(0)'; btt.style.pointerEvents='auto'; }
+  else { btt.style.opacity='0'; btt.style.transform='translateY(16px)'; btt.style.pointerEvents='none'; }
+});
+
+// ============================
+// INIT
+// ============================
+function init() {
+  initTheme();
+  lucide.createIcons();
+  renderHomeDests();
+  renderHomePackages();
+  renderHomeReviews();
+  initCounters();
+  // Handle initial hash
+  const hash = location.hash.slice(1) || '/';
+  if (hash.startsWith('/package/')) navigate('package', hash.split('/package/')[1]);
+  else if (hash === '/destinations') navigate('destinations');
+  else if (hash === '/trips') navigate('trips');
+  else if (hash === '/checkout') navigate('checkout');
+  else if (hash === '/profile') navigate('profile');
+  else navigate('home');
+}
+
+init();
+</script>
+
+</body>
+</html>
